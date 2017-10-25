@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { lensPath, lensProp, set, append } from "ramda";
+import { lensProp, set, append } from "ramda";
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component {
@@ -16,13 +16,15 @@ const configurable = config => WrappedComponent => {
 		}
 
 		getWrappedComponentProps = () => {
-			if (WrappedComponent && WrappedComponent.propTypes) {
+			// TODO -> should be possible to add some prop values before rendering the component.
+			if (WrappedComponent.propTypes) {
 				const keys = Object.keys(WrappedComponent.propTypes);
 
 				return keys.reduce((acc, key) => {
 					return {
 						...acc,
 						[key]: undefined,
+						children: "hello",
 					};
 				}, {});
 			}
@@ -30,13 +32,8 @@ const configurable = config => WrappedComponent => {
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
-
 			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
-
-			console.log("this.state.props.children", this.state.props.children);
 			const newChildren = append(NewComponent, [this.state.props.children]);
-
-			console.log("newChildren", newChildren);
 			const componentTree = (
 				<div>
 					{
@@ -71,14 +68,14 @@ const configurable = config => WrappedComponent => {
 
 			const componentList = keys.map(key => {
 				return (
-					<div key={key} style={{ padding: 30, border: "4px solid grey" }}>
-						<div
-							onClick={(e) => {
-								e.stopPropagation();
-								this.setPropState(listedProp, components[key]);
-							}}
-						>{key}
-						</div>
+					<div
+						key={key}
+						style={{ padding: 30, border: "4px solid grey" }}
+						onClick={(e) => {
+							e.stopPropagation();
+							this.setPropState(listedProp, components[key]);
+						}}
+					>{key}
 					</div>
 				);
 			});
@@ -87,7 +84,7 @@ const configurable = config => WrappedComponent => {
 				<div >
 					{listedProp === "children" ? componentList : (
 						<div style={{ padding: 30, border: "4px solid grey" }}>
-							<span style={{ paddingRight: 12 }}>enter value for {listedProp}:</span>
+							<span style={{ paddingRight: 12 }}>{"enter value for"} {listedProp}</span>
 							<input
 								onClick={e => e.stopPropagation()}
 								type="text" onChange={(e) => {
@@ -101,7 +98,7 @@ const configurable = config => WrappedComponent => {
 									e.stopPropagation();
 									this.setPropState(listedProp, textInput);
 								}}
-							>SET
+							>{"SET"}
 							</span>
 						</div>
 					)}
@@ -127,7 +124,7 @@ const configurable = config => WrappedComponent => {
 				});
 
 				return (
-					<div style={{ position: "absolute", right: -60, top: 0, transform: "translateX(100%)" }}>
+					<div style={{ position: "fixed", right: 130, width: 300, height: "100vh", color: "black", overflow: "scroll" }}>
 						{propList}
 						{listedProp && this.renderPropList()}
 					</div>
@@ -139,7 +136,7 @@ const configurable = config => WrappedComponent => {
 			console.log("this.state", this.state);
 			return (
 				<div
-					style={{ position: "relative" }} onClick={(e) => {
+					style={{ display: "inline-block", position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
 						e.stopPropagation();
 						this.setState({ propSwitcher: !this.state.propSwitcher });
 					}}

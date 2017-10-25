@@ -1,13 +1,13 @@
 import configurable from "./configurable";
 import Button from "../components/button";
 import Row from "../components/row";
+import ClassComponent from "../components/class";
 
-console.log("Button", Button);
-console.log("Row", Row);
 const config = {
 	components: {
 		Row,
 		Button,
+		ClassComponent,
 	},
 };
 
