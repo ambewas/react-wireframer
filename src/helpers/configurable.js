@@ -31,10 +31,14 @@ const configurable = config => WrappedComponent => {
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
-			const NewComponent = configurable(config)(value);
 
+			console.log("prop", prop);
+			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
+			const theValue = NewComponent ? <NewComponent /> : "green";
+
+			console.log("theValue", theValue);
 			this.setState({
-				props: set(propLens, <NewComponent />, this.state.props),
+				props: set(propLens, theValue, this.state.props),
 			});
 
 		}
@@ -71,7 +75,7 @@ const configurable = config => WrappedComponent => {
 				<div>
 					{this.renderPropSwitcher()}
 					{this.state.propList && this.renderPropList()}
-					<WrappedComponent >{this.state.props.children}</WrappedComponent>
+					<WrappedComponent {...this.state.props}>{this.state.props.children}</WrappedComponent>
 				</div>
 			);
 		}

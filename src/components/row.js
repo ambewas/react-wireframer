@@ -1,9 +1,14 @@
 import React from "react";
+import PropTypes from "prop-types";
 
-const Row = ({ children }) => ( // eslint-disable-line
+const Row = ({ children }) => (
 	<div style={{ padding: 30, background: "red" }}>
 		{children}myrow
 	</div>
 );
+
+Row.propTypes = {
+	children: PropTypes.node,
+};
 
 export default Row;
