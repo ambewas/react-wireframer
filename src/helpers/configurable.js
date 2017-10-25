@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { lensPath, lensProp, set } from "ramda";
+import { lensPath, lensProp, set, append } from "ramda";
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component {
@@ -22,7 +22,7 @@ const configurable = config => WrappedComponent => {
 				return keys.reduce((acc, key) => {
 					return {
 						...acc,
-						[key]: "somethin",
+						[key]: undefined,
 					};
 				}, {});
 			}
@@ -32,7 +32,25 @@ const configurable = config => WrappedComponent => {
 			const propLens = lensProp(prop);
 
 			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
-			const theValue = NewComponent ? <NewComponent /> : value;
+
+			console.log("this.state.props.children", this.state.props.children);
+			const newChildren = append(NewComponent, [this.state.props.children]);
+
+			console.log("newChildren", newChildren);
+			const componentTree = (
+				<div>
+					{
+						newChildren.filter(c => c).map((Child, i) => {
+							if (typeof Child === "object") {
+								return Child;
+							}
+							return <Child key={i} />; // eslint-disable-line
+						})
+					}
+				</div>
+			);
+
+			const theValue = NewComponent ? componentTree : value;
 
 			console.log("theValue", theValue);
 			this.setState({
