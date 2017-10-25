@@ -6,7 +6,7 @@ const configurable = config => WrappedComponent => {
 		state = {
 			child: "aa",
 			props: {},
-			propList: false,
+			listedProp: undefined,
 		}
 
 		componentDidMount() {
@@ -16,7 +16,6 @@ const configurable = config => WrappedComponent => {
 		}
 
 		getWrappedComponentProps = () => {
-			console.log("WrappedComponent", WrappedComponent);
 			if (WrappedComponent && WrappedComponent.propTypes) {
 				const keys = Object.keys(WrappedComponent.propTypes);
 
@@ -32,31 +31,49 @@ const configurable = config => WrappedComponent => {
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
 
-			console.log("prop", prop);
 			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
-			const theValue = NewComponent ? <NewComponent /> : "green";
+			const theValue = NewComponent ? <NewComponent /> : value;
 
 			console.log("theValue", theValue);
 			this.setState({
 				props: set(propLens, theValue, this.state.props),
 			});
-
 		}
 
 		showPropList = (prop) => {
 			this.setState({
-				propList: prop,
+				listedProp: prop,
 			});
 		}
 
 		renderPropList = () => {
 			const { components } = config;
+			const { listedProp, textInput } = this.state;
 			const keys = Object.keys(components);
 
-			console.log("config", config);
-			return keys.map(key => {
-				return <div key={key} onClick={() => this.setPropState(this.state.propList, components[key])}>{key}</div>;
+			const componentList = keys.map(key => {
+				return (
+					<div key={key} onClick={() => this.setPropState(listedProp, components[key])}>{key}</div>
+				);
 			});
+
+			return (
+				<div >
+					{listedProp === "children" ? componentList : (
+						<div style={{ padding: 30, border: "4px solid grey" }}>
+							<span style={{ paddingRight: 12 }}>enter value for {listedProp}:</span>
+							<input
+								type="text" onChange={(e) => {
+									e.stopPropagation();
+									e.preventDefault();
+									this.setState({ textInput: e.target.value });
+								}} value={textInput}
+							/>
+							<span onClick={() => this.setPropState(listedProp, textInput)}>SET</span>
+						</div>
+					)}
+				</div>
+			);
 		}
 
 		renderPropSwitcher = () => {
@@ -70,11 +87,12 @@ const configurable = config => WrappedComponent => {
 		}
 
 		render() {
-			this.getWrappedComponentProps();
+			const { listedProp } = this.state;
+
 			return (
 				<div>
 					{this.renderPropSwitcher()}
-					{this.state.propList && this.renderPropList()}
+					{listedProp && this.renderPropList()}
 					<WrappedComponent {...this.state.props}>{this.state.props.children}</WrappedComponent>
 				</div>
 			);
