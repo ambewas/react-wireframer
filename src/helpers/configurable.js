@@ -35,23 +35,18 @@ const configurable = config => WrappedComponent => {
 			const propLens = lensProp(prop);
 			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
 			const newChildren = append(NewComponent, [this.state.props.children]);
-			const componentTree = (
-				<div>
-					{
-						newChildren.filter(c => c).map((Child, i) => {
-							if (typeof Child === "object") {
-								return Child;
-							}
-							return <Child key={i} />; // eslint-disable-line
-						})
-					}
-				</div>
-			);
+			const componentTree = newChildren.filter(c => c).map((Child, i) => {
+				if (typeof Child === "object") {
+					return Child;
+				}
+				return <Child key={i} />;
+			});
 
-			const propValue = NewComponent ? componentTree : value;
+			const theValue = NewComponent ? componentTree : value;
 
+			console.log("theValue", theValue);
 			this.setState({
-				props: set(propLens, propValue, this.state.props),
+				props: set(propLens, theValue, this.state.props),
 			});
 		}
 
@@ -147,6 +142,7 @@ const configurable = config => WrappedComponent => {
 		}
 
 		render() {
+			console.log("this.state", this.state);
 			return (
 				<div
 					style={{ display: "inline-block", position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
@@ -154,8 +150,8 @@ const configurable = config => WrappedComponent => {
 						this.setState({ propSwitcher: !this.state.propSwitcher });
 					}}
 				>
+					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 					<WrappedComponent {...this.state.props}>
-						<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 						{this.state.props.children}
 					</WrappedComponent>
 				</div>
