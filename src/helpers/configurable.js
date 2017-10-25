@@ -71,7 +71,15 @@ const configurable = config => WrappedComponent => {
 
 			const componentList = keys.map(key => {
 				return (
-					<div key={key} onClick={() => this.setPropState(listedProp, components[key])}>{key}</div>
+					<div key={key} style={{ padding: 30, border: "4px solid grey" }}>
+						<div
+							onClick={(e) => {
+								e.stopPropagation();
+								this.setPropState(listedProp, components[key]);
+							}}
+						>{key}
+						</div>
+					</div>
 				);
 			});
 
@@ -81,13 +89,20 @@ const configurable = config => WrappedComponent => {
 						<div style={{ padding: 30, border: "4px solid grey" }}>
 							<span style={{ paddingRight: 12 }}>enter value for {listedProp}:</span>
 							<input
+								onClick={e => e.stopPropagation()}
 								type="text" onChange={(e) => {
 									e.stopPropagation();
 									e.preventDefault();
 									this.setState({ textInput: e.target.value });
 								}} value={textInput}
 							/>
-							<span onClick={() => this.setPropState(listedProp, textInput)}>SET</span>
+							<span
+								onClick={(e) => {
+									e.stopPropagation();
+									this.setPropState(listedProp, textInput);
+								}}
+							>SET
+							</span>
 						</div>
 					)}
 				</div>
@@ -95,23 +110,44 @@ const configurable = config => WrappedComponent => {
 		}
 
 		renderPropSwitcher = () => {
-			if (this.state.props) {
-				const keys = Object.keys(this.state.props);
+			const { listedProp, props } = this.state;
 
-				return keys.map(prop => {
-					return <div key={prop} onClick={() => this.showPropList(prop)}>{prop}</div>;
+			if (props) {
+				const keys = Object.keys(props);
+
+				const propList = keys.map(prop => {
+					return (
+						<div
+							key={prop} onClick={(e) => {
+								e.stopPropagation();
+								this.showPropList(prop);
+							}}
+						>{prop}
+						</div>);
 				});
+
+				return (
+					<div style={{ position: "absolute", right: -60, top: 0, transform: "translateX(100%)" }}>
+						{propList}
+						{listedProp && this.renderPropList()}
+					</div>
+				);
 			}
 		}
 
 		render() {
-			const { listedProp } = this.state;
-
+			console.log("this.state", this.state);
 			return (
-				<div>
-					{this.renderPropSwitcher()}
-					{listedProp && this.renderPropList()}
-					<WrappedComponent {...this.state.props}>{this.state.props.children}</WrappedComponent>
+				<div
+					style={{ position: "relative" }} onClick={(e) => {
+						e.stopPropagation();
+						this.setState({ propSwitcher: !this.state.propSwitcher });
+					}}
+				>
+					<WrappedComponent {...this.state.props}>
+						<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
+						{this.state.props.children}
+					</WrappedComponent>
 				</div>
 			);
 		}
