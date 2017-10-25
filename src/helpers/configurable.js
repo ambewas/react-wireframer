@@ -11,12 +11,13 @@ const configurable = config => WrappedComponent => {
 
 		componentDidMount() {
 			this.setState({ // eslint-disable-line
-				props: this.getWrappedComponentProps(),
+				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
 		}
 
 		getWrappedComponentProps = () => {
 			// TODO -> should be possible to add some prop values before rendering the component.
+			// because yeah well.. we don't really have a way of accessing the default props of the component, now do we...?
 			if (WrappedComponent.propTypes) {
 				const keys = Object.keys(WrappedComponent.propTypes);
 
@@ -47,11 +48,10 @@ const configurable = config => WrappedComponent => {
 				</div>
 			);
 
-			const theValue = NewComponent ? componentTree : value;
+			const propValue = NewComponent ? componentTree : value;
 
-			console.log("theValue", theValue);
 			this.setState({
-				props: set(propLens, theValue, this.state.props),
+				props: set(propLens, propValue, this.state.props),
 			});
 		}
 
@@ -83,8 +83,7 @@ const configurable = config => WrappedComponent => {
 			return (
 				<div >
 					{listedProp === "children" ? componentList : (
-						<div style={{ padding: 30, border: "4px solid grey" }}>
-							<span style={{ paddingRight: 12 }}>{"enter value for"} {listedProp}</span>
+						<div>
 							<input
 								onClick={e => e.stopPropagation()}
 								type="text" onChange={(e) => {
@@ -115,25 +114,39 @@ const configurable = config => WrappedComponent => {
 				const propList = keys.map(prop => {
 					return (
 						<div
-							key={prop} onClick={(e) => {
+							className="fc-flex-container"
+							key={prop}
+							onClick={(e) => {
 								e.stopPropagation();
 								this.showPropList(prop);
 							}}
-						>{prop}
+						>
+							{prop}
+							{listedProp && listedProp === prop && this.renderPropList()}
 						</div>);
 				});
 
 				return (
-					<div style={{ position: "fixed", right: 130, width: 300, height: "100vh", color: "black", overflow: "scroll" }}>
+					<div
+						style={{ position: "fixed",
+							zIndex: 99999999,
+							textAlign: "left",
+							padding: "10px 30px",
+							backgroundColor: "white",
+							right: 0,
+							top: 0,
+							width: 500,
+							height: "100vh",
+							color: "black",
+							overflow: "scroll" }}
+					>
 						{propList}
-						{listedProp && this.renderPropList()}
 					</div>
 				);
 			}
 		}
 
 		render() {
-			console.log("this.state", this.state);
 			return (
 				<div
 					style={{ display: "inline-block", position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
