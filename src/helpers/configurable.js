@@ -33,20 +33,20 @@ const configurable = config => WrappedComponent => {
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
-			const NewComponent = prop === "children" ? configurable(config)(value) : undefined;
+
+			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
 			const newChildren = append(NewComponent, [this.state.props.children]);
 			const componentTree = newChildren.filter(c => c).map((Child, i) => {
-				if (typeof Child === "object") {
+				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				return <Child key={i} />;
+				return <Child key={i} />; // eslint-disable-line
 			});
 
-			const theValue = NewComponent ? componentTree : value;
+			const propValue = NewComponent ? componentTree : value;
 
-			console.log("theValue", theValue);
 			this.setState({
-				props: set(propLens, theValue, this.state.props),
+				props: set(propLens, propValue, this.state.props),
 			});
 		}
 
@@ -70,32 +70,32 @@ const configurable = config => WrappedComponent => {
 							e.stopPropagation();
 							this.setPropState(listedProp, components[key]);
 						}}
-					>{key}
+					>
+						{key}
 					</div>
 				);
 			});
 
 			return (
-				<div >
-					{listedProp === "children" ? componentList : (
-						<div>
-							<input
-								onClick={e => e.stopPropagation()}
-								type="text" onChange={(e) => {
-									e.stopPropagation();
-									e.preventDefault();
-									this.setState({ textInput: e.target.value });
-								}} value={textInput}
-							/>
-							<span
-								onClick={(e) => {
-									e.stopPropagation();
-									this.setPropState(listedProp, textInput);
-								}}
-							>{"SET"}
-							</span>
-						</div>
-					)}
+				<div>
+					<div>
+						<input
+							onClick={e => e.stopPropagation()}
+							type="text" onChange={(e) => {
+								e.stopPropagation();
+								e.preventDefault();
+								this.setState({ textInput: e.target.value });
+							}} value={textInput}
+						/>
+						<span
+							onClick={(e) => {
+								e.stopPropagation();
+								this.setPropState(listedProp, textInput);
+							}}
+						>{"SET"}
+						</span>
+						{listedProp === "children" && componentList}
+					</div>
 				</div>
 			);
 		}
@@ -142,17 +142,18 @@ const configurable = config => WrappedComponent => {
 		}
 
 		render() {
-			console.log("this.state", this.state);
+			const { children, ...restProps } = this.state.props;
+
 			return (
 				<div
-					style={{ display: "inline-block", position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
+					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
 						e.stopPropagation();
 						this.setState({ propSwitcher: !this.state.propSwitcher });
 					}}
 				>
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
-					<WrappedComponent {...this.state.props}>
-						{this.state.props.children}
+					<WrappedComponent {...restProps}>
+						{children}
 					</WrappedComponent>
 				</div>
 			);
