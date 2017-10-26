@@ -1,5 +1,11 @@
 import React, { Component } from "react";
-import { lensProp, set, append, flatten, remove } from "ramda";
+import { lensPath, lensProp, view, set, append, flatten, reject, compose } from "ramda";
+
+const safeClick = fn => e => {
+	e.preventDefault();
+	e.stopPropagation();
+	return fn && fn(e);
+};
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component {
@@ -32,9 +38,8 @@ const configurable = config => WrappedComponent => {
 		}
 
 		removeChild = (id) => {
-			console.log("id", id);
-			console.log("this.state.props.children", this.state.props.children);
-			const newChildren = remove(id, 1, this.state.props.children);
+			const byPropId = (component) => view(lensPath(["props", "orderID"]), component) === id;
+			const newChildren = reject(byPropId, this.state.props.children);
 			const propLens = lensProp("children");
 
 			this.setState({
@@ -45,14 +50,19 @@ const configurable = config => WrappedComponent => {
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
 			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
-			const newChildren = flatten(append(NewComponent, [this.state.props.children]));
 
-			const componentTree = flatten(newChildren.filter(c => c).map((Child, i) => {
+			const newChildren = compose(
+				flatten,
+				append(NewComponent)
+			)([this.state.props.children]);
+
+			const componentTree = newChildren.filter(c => c).map((Child, i) => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				return <Child key={i} removeChild={this.removeChild} orderID={i}/>; // eslint-disable-line
-			}));
+
+				return <Child key={i} removeChild={this.removeChild} orderID={i}/>;
+			});
 
 			const propValue = NewComponent ? componentTree : value;
 
@@ -77,10 +87,7 @@ const configurable = config => WrappedComponent => {
 					<div
 						key={key}
 						style={{ padding: 30, border: "4px solid grey" }}
-						onClick={(e) => {
-							e.stopPropagation();
-							this.setPropState(listedProp, components[key]);
-						}}
+						onClick={safeClick(() => this.setPropState(listedProp, components[key]))}
 					>
 						{key}
 					</div>
@@ -92,18 +99,14 @@ const configurable = config => WrappedComponent => {
 					<div>
 						<input
 							onClick={e => e.stopPropagation()}
-							type="text" onChange={(e) => {
-								e.stopPropagation();
-								e.preventDefault();
-								this.setState({ textInput: e.target.value });
-							}} value={textInput}
+							type="text"
+							onChange={safeClick((e) => this.setState({ textInput: e.target.value }))}
+							value={textInput}
 						/>
 						<span
-							onClick={(e) => {
-								e.stopPropagation();
-								this.setPropState(listedProp, textInput);
-							}}
-						>{"SET"}
+							onClick={safeClick(() => this.setPropState(listedProp, textInput))}
+						>
+							{"SET"}
 						</span>
 						{listedProp === "children" && componentList}
 					</div>
@@ -122,10 +125,7 @@ const configurable = config => WrappedComponent => {
 						<div
 							className="fc-flex-container"
 							key={prop}
-							onClick={(e) => {
-								e.stopPropagation();
-								this.showPropList(prop);
-							}}
+							onClick={safeClick(() => this.showPropList(prop))}
 						>
 							{prop}
 							{listedProp && listedProp === prop && this.renderPropList()}
@@ -148,11 +148,9 @@ const configurable = config => WrappedComponent => {
 						}}
 					>
 						<div
-							onClick={(e) => {
-								e.stopPropagation();
-							this.props.removeChild(this.props.orderID); // eslint-disable-line
-							}}
-						>{"delete"}
+							onClick={safeClick(() => this.props.removeChild(this.props.orderID))} // eslint-disable-line
+						>
+							{"delete"}
 						</div>
 						{propList}
 					</div>
@@ -165,10 +163,8 @@ const configurable = config => WrappedComponent => {
 
 			return (
 				<div
-					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }} onClick={(e) => {
-						e.stopPropagation();
-						this.setState({ propSwitcher: !this.state.propSwitcher });
-					}}
+					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
+					onClick={safeClick(() => this.setState({ propSwitcher: !this.state.propSwitcher }))}
 					ref={c => this.componentRef = c} // eslint-disable-line
 				>
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
