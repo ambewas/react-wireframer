@@ -7,8 +7,10 @@ const safeClick = fn => e => {
 	return fn && fn(e);
 };
 
+const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disable-line
+
 const configurable = config => WrappedComponent => {
-	return class ConfigurableComponent extends Component {
+	return class ConfigurableComponent extends Component { // eslint-disable-line
 		state = {
 			child: "aa",
 			props: {},
@@ -26,12 +28,13 @@ const configurable = config => WrappedComponent => {
 			// because yeah well.. we don't really have a way of accessing the default props of the component, now do we...?
 			if (WrappedComponent.propTypes) {
 				const keys = Object.keys(WrappedComponent.propTypes);
+				const CDummy = configurable(config)(DummyComponent);
 
 				return keys.reduce((acc, key) => {
 					return {
 						...acc,
 						[key]: undefined,
-						children: "hello",
+						children: <CDummy removeChild={this.removeChild} orderID={0}>{"some dummy text"}</CDummy>,
 					};
 				}, {});
 			}
@@ -42,13 +45,20 @@ const configurable = config => WrappedComponent => {
 			const newChildren = reject(byPropId, this.state.props.children);
 			const propLens = lensProp("children");
 
-			this.setState({
-				props: set(propLens, newChildren, this.state.props),
-			});
+			if (Array.isArray(this.state.props.children)) {
+				this.setState({
+					props: set(propLens, newChildren, this.state.props),
+				});
+			} else {
+				this.setState({
+					props: set(propLens, "", this.state.props),
+				});
+			}
 		}
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
+
 			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
 
 			const newChildren = compose(
@@ -129,7 +139,8 @@ const configurable = config => WrappedComponent => {
 						>
 							{prop}
 							{listedProp && listedProp === prop && this.renderPropList()}
-						</div>);
+						</div>
+					);
 				});
 
 				return (
