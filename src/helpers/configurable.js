@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { lensProp, set, append } from "ramda";
+import { lensProp, set, append, flatten, remove } from "ramda";
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component {
@@ -31,17 +31,28 @@ const configurable = config => WrappedComponent => {
 			}
 		}
 
+		removeChild = (id) => {
+			console.log("id", id);
+			console.log("this.state.props.children", this.state.props.children);
+			const newChildren = remove(id, 1, this.state.props.children);
+			const propLens = lensProp("children");
+
+			this.setState({
+				props: set(propLens, newChildren, this.state.props),
+			});
+		}
+
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
-
 			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
-			const newChildren = append(NewComponent, [this.state.props.children]);
-			const componentTree = newChildren.filter(c => c).map((Child, i) => {
+			const newChildren = flatten(append(NewComponent, [this.state.props.children]));
+
+			const componentTree = flatten(newChildren.filter(c => c).map((Child, i) => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				return <Child key={i} />; // eslint-disable-line
-			});
+				return <Child key={i} removeChild={this.removeChild} orderID={i}/>; // eslint-disable-line
+			}));
 
 			const propValue = NewComponent ? componentTree : value;
 
@@ -133,8 +144,16 @@ const configurable = config => WrappedComponent => {
 							width: 500,
 							height: "100vh",
 							color: "black",
-							overflow: "scroll" }}
+							overflow: "scroll",
+						}}
 					>
+						<div
+							onClick={(e) => {
+								e.stopPropagation();
+							this.props.removeChild(this.props.orderID); // eslint-disable-line
+							}}
+						>{"delete"}
+						</div>
 						{propList}
 					</div>
 				);
@@ -150,6 +169,7 @@ const configurable = config => WrappedComponent => {
 						e.stopPropagation();
 						this.setState({ propSwitcher: !this.state.propSwitcher });
 					}}
+					ref={c => this.componentRef = c} // eslint-disable-line
 				>
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 					<WrappedComponent {...restProps}>
