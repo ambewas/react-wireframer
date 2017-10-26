@@ -71,7 +71,7 @@ const configurable = config => WrappedComponent => {
 					return Child;
 				}
 
-				return <Child key={i} removeChild={this.removeChild} orderID={i}/>;
+				return <Child key={i} removeChild={this.removeChild} orderID={i} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
