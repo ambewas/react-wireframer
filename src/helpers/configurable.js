@@ -31,6 +31,10 @@ const configurable = config => WrappedComponent => {
 			listedProp: undefined,
 		}
 
+		static defaultProps = {
+			parentLens: compose(lensIndex(0), lensProp("children")),
+		}
+
 		componentDidMount() {
 			this.setState({ // eslint-disable-line
 				props: { ...this.getWrappedComponentProps(), ...this.props },
@@ -104,16 +108,11 @@ const configurable = config => WrappedComponent => {
 
 				// TODO -> can we do this in the constructor of the component, so we at least have the correct props...?
 				// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
-				const newProps = compose(
-					omit("children"),
-					omit("parentLens"),
-					omit("removeChild"),
-					omit("id"),
-				)(this.state.props);
+				const newProps = omit(["children", "parentLens", "removeChild", "id"], this.state.props);
 
 				const newComponent = {
 					id: uniqueID,
-					type: value.name,
+					type: value.displayName || value.name, // add support for HOC components that use the name of the wrapped component as displayname
 					children: [],
 					// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
 					props: newProps,
