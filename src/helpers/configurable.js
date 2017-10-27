@@ -103,7 +103,7 @@ const configurable = config => WrappedComponent => {
 				const uniqueID = uuid();
 
 				// TODO -> can we do this in the constructor of the component, so we at least have the correct props...?
-				// dont need all the stateprops in the componentState, so lets cleanup a bit.
+				// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
 				const newProps = compose(
 					omit("children"),
 					omit("parentLens"),
