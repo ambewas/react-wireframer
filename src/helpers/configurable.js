@@ -26,8 +26,6 @@ const configurable = config => WrappedComponent => {
 		}
 
 		componentDidMount() {
-
-
 			this.setState({ // eslint-disable-line
 				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
@@ -59,15 +57,9 @@ const configurable = config => WrappedComponent => {
 			// find the child in componentState and remove it there as well.
 			const parentLens = this.props.parentLens;
 			const arrayToRemoveFrom = view(parentLens, componentState);
-
-			console.log("this.props.id", id);
-			console.log("arrayToRemoveFrom", arrayToRemoveFrom);
 			const newArray = reject(byId, arrayToRemoveFrom);
-
-			console.log("newArray", newArray);
 			const newState = set(parentLens, newArray, componentState);
 
-			console.log("newState", newState);
 			componentState = newState;
 
 			// component update for representation in the DOM.
@@ -96,28 +88,25 @@ const configurable = config => WrappedComponent => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				const parentLens = this.props.parentLens;
-				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 
 				const uniqueID = uuid();
-
 				const newComponent = {
 					id: uniqueID,
 					_type: value.name,
 					children: [],
+					// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
 					props: this.state.props,
 				};
 
+				const parentLens = this.props.parentLens;
+				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 				const arrayToAddTo = view(parentLens, componentState);
 
 				arrayToAddTo.push(newComponent);
+
 				const newState = set(parentLens, arrayToAddTo, componentState);
 
 				componentState = newState;
-				console.log("componentState", componentState);
-
-				// TODO -> can't use "i", because it will be duplicate when removing the second element of three items, for example.
-				// try with guid...
 
 				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} hey={"hello"} parentLens={deeperLens} />; // eslint-disable-line
 			});
@@ -220,6 +209,7 @@ const configurable = config => WrappedComponent => {
 		render() {
 			const { children, ...restProps } = this.state.props;
 
+			console.log("componentState", componentState);
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
