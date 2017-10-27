@@ -102,9 +102,6 @@ const configurable = config => WrappedComponent => {
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 				const arrayToAddTo = view(parentLens, componentState);
 				const newArray = append(newComponent, arrayToAddTo);
-
-				// arrayToAddTo.push(newComponent);
-
 				const newState = set(parentLens, newArray, componentState);
 
 				componentState = newState;
