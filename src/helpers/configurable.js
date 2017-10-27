@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { lensPath, lensProp, view, set, append, flatten, reject, compose } from "ramda";
+import { lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose } from "ramda";
 
 const safeClick = fn => e => {
 	e.preventDefault();
@@ -8,6 +8,12 @@ const safeClick = fn => e => {
 };
 
 const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disable-line
+
+let componentState = [{
+	_id: 1,
+	_type: "root",
+	children: [],
+}];
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component { // eslint-disable-line
@@ -18,6 +24,8 @@ const configurable = config => WrappedComponent => {
 		}
 
 		componentDidMount() {
+
+
 			this.setState({ // eslint-disable-line
 				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
@@ -34,7 +42,7 @@ const configurable = config => WrappedComponent => {
 					return {
 						...acc,
 						[key]: undefined,
-						children: <CDummy removeChild={this.removeChild} orderID={0}>{"some dummy text"}</CDummy>,
+						children: <CDummy removeChild={this.removeChild} orderID={0}>{"some dummy text"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
 					};
 				}, {});
 			}
@@ -70,8 +78,24 @@ const configurable = config => WrappedComponent => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
+				const parentLens = this.props.parentLens || lensIndex(0);
+				const lensToThisPath = compose(parentLens, lensProp("children"));
 
-				return <Child key={i} removeChild={this.removeChild} orderID={i} />; // eslint-disable-line
+				console.log("parentLens", parentLens);
+				const parentPart = view(parentLens, componentState);
+
+				const newComponent = {
+					_id: this.props.orderID,
+					_type: value.name,
+					children: [],
+				};
+				const newState = set(lensToThisPath, newComponent, componentState);
+
+				componentState = newState;
+				console.log("parentPart", parentPart);
+				console.log("newState", newState);
+
+				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={lensToThisPath} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
