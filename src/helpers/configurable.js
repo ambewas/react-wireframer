@@ -95,7 +95,6 @@ const configurable = config => WrappedComponent => {
 				const newState = set(parentLens, arrayToAddTo, componentState);
 
 				componentState = newState;
-
 				console.log("componentState", componentState);
 				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={deeperLens} />; // eslint-disable-line
 			});
@@ -189,7 +188,6 @@ const configurable = config => WrappedComponent => {
 						>
 							{"delete"}
 						</div>
-						<div onClick={safeClick(() => this.props.getProps(this.state.props, this))}>{"get props"}</div>
 						{propList}
 					</div>
 				);
