@@ -6,11 +6,11 @@ const getPropString = (props) => {
 	return propKeys
 		.filter(key => props[key])
 		.map(key => {
-			return `${key}="${props[key]}"`;
+			return ` ${key}="${props[key]}"`;
 		});
 };
 
-const getElementString = (element, children, props) => `<${element} ${getPropString(props).join(" ")}>${children.join("")}</${element}>`;
+const getElementString = (element, children, props) => `<${element}${getPropString(props).join("")}>${children.join("")}</${element}>`;
 
 const generateJSX = (json) => {
 	return json.map((jsonElement) => {

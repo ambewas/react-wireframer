@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { propEq, lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
+import { propEq, lensIndex, lensPath, omit, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
 import uuid from "uuid/v1";
 import generateJSX from "./generateJSX";
 
@@ -103,12 +103,20 @@ const configurable = config => WrappedComponent => {
 				const uniqueID = uuid();
 
 				// TODO -> can we do this in the constructor of the component, so we at least have the correct props...?
+				// dont need all the stateprops in the componentState, so lets cleanup a bit.
+				const newProps = compose(
+					omit("children"),
+					omit("parentLens"),
+					omit("removeChild"),
+					omit("id"),
+				)(this.state.props);
+
 				const newComponent = {
 					id: uniqueID,
 					type: value.name,
 					children: [],
 					// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
-					props: this.state.props,
+					props: newProps,
 				};
 
 				const { parentLens } = this.props;
@@ -122,7 +130,7 @@ const configurable = config => WrappedComponent => {
 
 				componentState = newState;
 
-				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} hey={"hello"} parentLens={deeperLens} />; // eslint-disable-line
+				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
