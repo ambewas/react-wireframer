@@ -55,9 +55,13 @@ const configurable = config => WrappedComponent => {
 			const propLens = lensProp("children");
 
 			// find the child in componentState and remove it there as well.
-			const parentLens = this.props.parentLens;
-			const arrayToRemoveFrom = view(parentLens, componentState);
-			const newArray = reject(byId, arrayToRemoveFrom);
+			const { parentLens } = this.props;
+
+			const newArray = compose(
+				reject(byId),
+				view(parentLens)
+			)(componentState);
+
 			const newState = set(parentLens, newArray, componentState);
 
 			componentState = newState;
@@ -98,10 +102,13 @@ const configurable = config => WrappedComponent => {
 					props: this.state.props,
 				};
 
-				const parentLens = this.props.parentLens;
+				const { parentLens } = this.props;
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
-				const arrayToAddTo = view(parentLens, componentState);
-				const newArray = append(newComponent, arrayToAddTo);
+				const newArray = compose(
+					append(newComponent),
+					view(parentLens)
+				)(componentState);
+
 				const newState = set(parentLens, newArray, componentState);
 
 				componentState = newState;
