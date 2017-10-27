@@ -80,7 +80,9 @@ const configurable = config => WrappedComponent => {
 				}
 				console.log("this.props.parentLens", this.props.parentLens);
 				const parentLens = this.props.parentLens;
-				const deeperLens = compose(parentLens, lensIndex(0), lensProp("children"));
+
+				console.log("i", i);
+				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 				const parentPart = view(parentLens, componentState);
 
 				console.log("parentPart", parentPart);
