@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { propEq, lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
 import uuid from "uuid/v1";
+import generateJSX from "./generateJSX";
 
 const safeClick = fn => e => {
 	e.preventDefault();
@@ -11,11 +12,32 @@ const safeClick = fn => e => {
 const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disable-line
 
 let componentState = [{
-	_id: 1,
-	_type: "root",
+	id: 1,
+	type: "rootComponent",
+	props: {},
+	children: [{
+		id: 1,
+		type: "NestedRootComponent",
+		props: {},
+		children: [],
+	},
+	{
+		id: 2,
+		type: "NestedRootComponentTwo",
+		props: {},
+		children: [],
+	}],
+},
+{
+	id: 2,
+	type: "rootComponentTwo",
+	props: {},
 	children: [],
 }];
 
+const string = generateJSX(componentState);
+
+console.log("string", string.join(""));
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component { // eslint-disable-line
@@ -95,6 +117,8 @@ const configurable = config => WrappedComponent => {
 				}
 
 				const uniqueID = uuid();
+
+				// TODO -> can we do this in the constructor of the component, so we at least have the correct props...?
 				const newComponent = {
 					id: uniqueID,
 					_type: value.name,
@@ -215,7 +239,7 @@ const configurable = config => WrappedComponent => {
 		render() {
 			const { children, ...restProps } = this.state.props;
 
-			console.log("componentState", componentState);
+			console.log("componentState", JSON.stringify(componentState));
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
@@ -233,3 +257,5 @@ const configurable = config => WrappedComponent => {
 };
 
 export default configurable;
+
+
