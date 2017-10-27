@@ -1,14 +1,21 @@
+import { keys } from "ramda";
 
+const getPropString = (props) => {
+	const propKeys = keys(props);
 
-const getElementString = (element, children) => `<${element}>${children.join("")}</${element}>`;
+	return propKeys
+		.filter(key => props[key])
+		.map(key => {
+			return `${key}="${props[key]}"`;
+		});
+};
+
+const getElementString = (element, children, props) => `<${element} ${getPropString(props).join(" ")}>${children.join("")}</${element}>`;
 
 const generateJSX = (json) => {
-	console.log("json", json);
 	return json.map((jsonElement) => {
-		console.log("jsonElement", jsonElement);
 		const element = jsonElement.type;
-
-		const elementString = getElementString(element, generateJSX(jsonElement.children));
+		const elementString = getElementString(element, generateJSX(jsonElement.children), jsonElement.props);
 
 		return elementString;
 	});

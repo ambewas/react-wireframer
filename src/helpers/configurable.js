@@ -14,7 +14,10 @@ const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disabl
 let componentState = [{
 	id: 1,
 	type: "rootComponent",
-	props: {},
+	props: {
+		background: "red",
+		color: "white",
+	},
 	children: [],
 }];
 
