@@ -5,12 +5,14 @@ import Button from "../../components/button";
 import configurated from "../../helpers/configurated";
 const CButton = configurated(Button);
 
+import { compose, lensIndex, lensProp } from "ramda";
+
 class Main extends Component {
 	state = {  }
 	render() {
 		return (
 			<Row>
-				<CButton />
+				<CButton parentLens={compose(lensIndex(0), lensProp("children"))}/>
 			</Row>
 		);
 	}

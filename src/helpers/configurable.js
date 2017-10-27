@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose } from "ramda";
+import { propEq, lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
 
 const safeClick = fn => e => {
 	e.preventDefault();
@@ -78,24 +78,32 @@ const configurable = config => WrappedComponent => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				const parentLens = this.props.parentLens || lensIndex(0);
-				const lensToThisPath = compose(parentLens, lensProp("children"));
-
-				console.log("parentLens", parentLens);
+				console.log("this.props.parentLens", this.props.parentLens);
+				const parentLens = this.props.parentLens;
+				const deeperLens = compose(parentLens, lensIndex(0), lensProp("children"));
 				const parentPart = view(parentLens, componentState);
+
+				console.log("parentPart", parentPart);
 
 				const newComponent = {
 					_id: this.props.orderID,
 					_type: value.name,
 					children: [],
 				};
-				const newState = set(lensToThisPath, newComponent, componentState);
+
+				const arrayToAddTo = view(parentLens, componentState);
+
+				console.log("arrayToAddTo", arrayToAddTo);
+
+				arrayToAddTo.push(newComponent);
+				console.log("arrayToAddTo", arrayToAddTo);
+
+				const newState = set(parentLens, arrayToAddTo, componentState);
 
 				componentState = newState;
-				console.log("parentPart", parentPart);
-				console.log("newState", newState);
+				console.log("componentState", componentState);
 
-				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={lensToThisPath} />; // eslint-disable-line
+				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
