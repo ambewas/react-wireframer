@@ -15,6 +15,7 @@ let componentState = [{
 	children: [],
 }];
 
+
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component { // eslint-disable-line
 		state = {
@@ -78,33 +79,24 @@ const configurable = config => WrappedComponent => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
-				console.log("this.props.parentLens", this.props.parentLens);
 				const parentLens = this.props.parentLens;
-
-				console.log("i", i);
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
-				const parentPart = view(parentLens, componentState);
-
-				console.log("parentPart", parentPart);
 
 				const newComponent = {
 					_id: this.props.orderID,
 					_type: value.name,
 					children: [],
+					props: this.state.props,
 				};
 
 				const arrayToAddTo = view(parentLens, componentState);
 
-				console.log("arrayToAddTo", arrayToAddTo);
-
 				arrayToAddTo.push(newComponent);
-				console.log("arrayToAddTo", arrayToAddTo);
-
 				const newState = set(parentLens, arrayToAddTo, componentState);
 
 				componentState = newState;
-				console.log("componentState", componentState);
 
+				console.log("componentState", componentState);
 				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
@@ -197,6 +189,7 @@ const configurable = config => WrappedComponent => {
 						>
 							{"delete"}
 						</div>
+						<div onClick={safeClick(() => this.props.getProps(this.state.props, this))}>{"get props"}</div>
 						{propList}
 					</div>
 				);
