@@ -51,7 +51,6 @@ const configurable = config => WrappedComponent => {
 		removeChild = (id) => {
 			const byPropId = (component) => view(lensPath(["props", "id"]), component) === id;
 			const byId = (component) => view(lensProp("id"), component) === id;
-			const newChildren = reject(byPropId, this.state.props.children);
 			const propLens = lensProp("children");
 
 			// find the child in componentState and remove it there as well.
@@ -67,6 +66,8 @@ const configurable = config => WrappedComponent => {
 			componentState = newState;
 
 			// component update for representation in the DOM.
+			const newChildren = reject(byPropId, this.state.props.children);
+
 			if (Array.isArray(this.state.props.children)) {
 				this.setState({
 					props: set(propLens, newChildren, this.state.props),
