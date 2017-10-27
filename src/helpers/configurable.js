@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { propEq, lensIndex, lensPath, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
+import uuid from "uuid/v1";
 
 const safeClick = fn => e => {
 	e.preventDefault();
@@ -43,17 +44,33 @@ const configurable = config => WrappedComponent => {
 					return {
 						...acc,
 						[key]: undefined,
-						children: <CDummy removeChild={this.removeChild} orderID={0}>{"some dummy text"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
+						children: <CDummy removeChild={this.removeChild} id={0}>{"some dummy text"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
 					};
 				}, {});
 			}
 		}
 
 		removeChild = (id) => {
-			const byPropId = (component) => view(lensPath(["props", "orderID"]), component) === id;
+			const byPropId = (component) => view(lensPath(["props", "id"]), component) === id;
+			const byId = (component) => view(lensProp("id"), component) === id;
 			const newChildren = reject(byPropId, this.state.props.children);
 			const propLens = lensProp("children");
 
+			// find the child in componentState and remove it there as well.
+			const parentLens = this.props.parentLens;
+			const arrayToRemoveFrom = view(parentLens, componentState);
+
+			console.log("this.props.id", id);
+			console.log("arrayToRemoveFrom", arrayToRemoveFrom);
+			const newArray = reject(byId, arrayToRemoveFrom);
+
+			console.log("newArray", newArray);
+			const newState = set(parentLens, newArray, componentState);
+
+			console.log("newState", newState);
+			componentState = newState;
+
+			// component update for representation in the DOM.
 			if (Array.isArray(this.state.props.children)) {
 				this.setState({
 					props: set(propLens, newChildren, this.state.props),
@@ -82,8 +99,10 @@ const configurable = config => WrappedComponent => {
 				const parentLens = this.props.parentLens;
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 
+				const uniqueID = uuid();
+
 				const newComponent = {
-					_id: this.props.orderID,
+					id: uniqueID,
 					_type: value.name,
 					children: [],
 					props: this.state.props,
@@ -96,7 +115,11 @@ const configurable = config => WrappedComponent => {
 
 				componentState = newState;
 				console.log("componentState", componentState);
-				return <Child key={i} removeChild={this.removeChild} orderID={i} parentLens={deeperLens} />; // eslint-disable-line
+
+				// TODO -> can't use "i", because it will be duplicate when removing the second element of three items, for example.
+				// try with guid...
+
+				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} hey={"hello"} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
@@ -184,7 +207,7 @@ const configurable = config => WrappedComponent => {
 						}}
 					>
 						<div
-							onClick={safeClick(() => this.props.removeChild(this.props.orderID))} // eslint-disable-line
+							onClick={safeClick(() => this.props.removeChild(this.props.id))} // eslint-disable-line
 						>
 							{"delete"}
 						</div>
