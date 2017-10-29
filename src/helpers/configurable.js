@@ -43,7 +43,6 @@ const addToState = (uniqueID, value, parentLens, props) => {
 		id: uniqueID,
 		type: value.displayName || value.name,
 		children: [],
-		// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
 		props: props,
 	};
 	const newArray = compose(append(newComponent), view(parentLens))(componentState);
@@ -154,11 +153,9 @@ const configurable = config => WrappedComponent => {
 
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 				const thisLens = compose(parentLens, lensIndex(i - 1));
-				// TODO -> the parent props are now put in the state. This is not what we want.
-				// should create an update function as well, where props are updated.
 				const uniqueID = uuid();
 
-				console.log("cleanedProps", cleanedProps);
+				// add this specific child to componentState
 				addToState(uniqueID, value, parentLens, cleanedProps);
 
 				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={thisLens} parentLens={deeperLens}/>; // eslint-disable-line
@@ -171,9 +168,11 @@ const configurable = config => WrappedComponent => {
 			this.setState({
 				props: newProps,
 			}, () => {
-				const moreCleanedProps = getCleanProps(this.state.props);
+				// update component props in componentState
+				const newCleanedProps = getCleanProps(this.state.props);
+				// TODO -> the lens is not always correct when we are removing things, apparently.
 
-				updateState(this.props.id, lens, moreCleanedProps);
+				updateState(this.props.id, lens, newCleanedProps);
 			});
 		}
 
@@ -270,7 +269,6 @@ const configurable = config => WrappedComponent => {
 
 		render() {
 			const { children, ...restProps } = this.state.props;
-
 
 			return (
 				<div
