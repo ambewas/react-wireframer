@@ -29,6 +29,7 @@ const configurable = config => WrappedComponent => {
 			child: "aa",
 			props: {},
 			listedProp: undefined,
+			textInput: "",
 		}
 
 		static defaultProps = {
