@@ -65,6 +65,8 @@ const configurable = config => WrappedComponent => {
 			parentLens: compose(lensIndex(0), lensProp("children")),
 		}
 
+		static uniqueID = uuid();
+
 		componentDidMount() {
 			this.setState({ // eslint-disable-line
 				props: { ...this.getWrappedComponentProps(), ...this.props },
@@ -126,14 +128,13 @@ const configurable = config => WrappedComponent => {
 					return Child;
 				}
 
-				const uniqueID = uuid();
 				const { parentLens } = this.props;
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 
 				// TODO -> can we do this in the constructor of the new child component, so we at least have the correct props...?
-				addToState(uniqueID, value, parentLens, this.state.props);
+				addToState(this.uniqueID, value, parentLens, this.state.props);
 
-				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} parentLens={deeperLens} />; // eslint-disable-line
+				return <Child key={this.uniqueID} removeChild={this.removeChild} id={this.uniqueID} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
 			const propValue = NewComponent ? componentTree : value;
