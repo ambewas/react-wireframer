@@ -21,6 +21,8 @@ let componentState = [{
 	children: [],
 }];
 
+const setState = (newState) => componentState = newState;
+
 const removeFromState = (lens, id) => {
 	const byId = (component) => view(lensProp("id"), component) === id;
 
@@ -32,7 +34,7 @@ const removeFromState = (lens, id) => {
 	const newState = set(lens, newArray, componentState);
 
 	// side effect. How shall we contain this...?
-	componentState = newState;
+	setState(newState);
 };
 
 const addToState = (uniqueID, value, parentLens, props) => {
@@ -49,7 +51,7 @@ const addToState = (uniqueID, value, parentLens, props) => {
 	const newState = set(parentLens, newArray, componentState);
 
 	// side effect. How shall we contain this...?
-	componentState = newState;
+	setState(newState);
 };
 
 const configurable = config => WrappedComponent => {
