@@ -35,6 +35,23 @@ const removeFromState = (lens, id) => {
 	componentState = newState;
 };
 
+const addToState = (uniqueID, value, parentLens, props) => {
+	// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
+	const newProps = omit(["children", "parentLens", "removeChild", "id"], props);
+	const newComponent = {
+		id: uniqueID,
+		type: value.displayName || value.name,
+		children: [],
+		// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
+		props: newProps,
+	};
+	const newArray = compose(append(newComponent), view(parentLens))(componentState);
+	const newState = set(parentLens, newArray, componentState);
+
+	// side effect. How shall we contain this...?
+	componentState = newState;
+};
+
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component { // eslint-disable-line
 		state = {
@@ -110,29 +127,11 @@ const configurable = config => WrappedComponent => {
 				}
 
 				const uniqueID = uuid();
-
-				// TODO -> can we do this in the constructor of the component, so we at least have the correct props...?
-				// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
-				const newProps = omit(["children", "parentLens", "removeChild", "id"], this.state.props);
-
-				const newComponent = {
-					id: uniqueID,
-					type: value.displayName || value.name, // add support for HOC components that use the name of the wrapped component as displayname
-					children: [],
-					// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
-					props: newProps,
-				};
-
 				const { parentLens } = this.props;
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
-				const newArray = compose(
-					append(newComponent),
-					view(parentLens)
-				)(componentState);
 
-				const newState = set(parentLens, newArray, componentState);
-
-				componentState = newState;
+				// TODO -> can we do this in the constructor of the new child component, so we at least have the correct props...?
+				addToState(uniqueID, value, parentLens, this.state.props);
 
 				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} parentLens={deeperLens} />; // eslint-disable-line
 			});
@@ -231,6 +230,8 @@ const configurable = config => WrappedComponent => {
 				);
 			}
 		}
+
+
 
 		render() {
 			const { children, ...restProps } = this.state.props;
