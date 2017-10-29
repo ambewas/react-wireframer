@@ -21,7 +21,19 @@ let componentState = [{
 	children: [],
 }];
 
+const removeFromState = (lens, id) => {
+	const byId = (component) => view(lensProp("id"), component) === id;
 
+	const newArray = compose(
+		reject(byId),
+		view(lens)
+	)(componentState);
+
+	const newState = set(lens, newArray, componentState);
+
+	// side effect. How shall we contain this...?
+	componentState = newState;
+};
 
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component { // eslint-disable-line
@@ -61,20 +73,12 @@ const configurable = config => WrappedComponent => {
 
 		removeChild = (id) => {
 			const byPropId = (component) => view(lensPath(["props", "id"]), component) === id;
-			const byId = (component) => view(lensProp("id"), component) === id;
 			const propLens = lensProp("children");
 
 			// find the child in componentState and remove it there as well.
 			const { parentLens } = this.props;
 
-			const newArray = compose(
-				reject(byId),
-				view(parentLens)
-			)(componentState);
-
-			const newState = set(parentLens, newArray, componentState);
-
-			componentState = newState;
+			removeFromState(parentLens, id);
 
 			// component update for representation in the DOM.
 			const newChildren = reject(byPropId, this.state.props.children);
