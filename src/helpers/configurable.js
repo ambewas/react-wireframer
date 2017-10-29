@@ -65,6 +65,7 @@ const configurable = config => WrappedComponent => {
 			parentLens: compose(lensIndex(0), lensProp("children")),
 		}
 
+		// identify the component for reference in componentState
 		static uniqueID = uuid();
 
 		componentDidMount() {
@@ -137,6 +138,7 @@ const configurable = config => WrappedComponent => {
 				return <Child key={this.uniqueID} removeChild={this.removeChild} id={this.uniqueID} parentLens={deeperLens} />; // eslint-disable-line
 			});
 
+			// dom state update
 			const propValue = NewComponent ? componentTree : value;
 
 			this.setState({
