@@ -39,19 +39,35 @@ const removeFromState = (lens, id) => {
 
 const addToState = (uniqueID, value, parentLens, props) => {
 	// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
-	const newProps = omit(["children", "parentLens", "removeChild", "id"], props);
 	const newComponent = {
 		id: uniqueID,
 		type: value.displayName || value.name,
 		children: [],
 		// TODO -> this is one tick too soon. These props are the parent props, and not those of the child to be added.
-		props: newProps,
+		props: props,
 	};
 	const newArray = compose(append(newComponent), view(parentLens))(componentState);
 	const newState = set(parentLens, newArray, componentState);
 
 	// side effect. How shall we contain this...?
 	setState(newState);
+};
+
+
+const updateState = (id, lens, props) => {
+	console.log("props", props);
+	const propsLens = compose(lens, lensProp("props"));
+	const newState = set(propsLens, props, componentState);
+
+	setState(newState);
+};
+
+const getCleanProps = (props) => omit(["children", "parentLens", "removeChild", "id", "lens"], props);
+
+const printJSX = () => {
+	const string = generateJSX(componentState);
+
+	console.log("componentState", string.join(""));
 };
 
 const configurable = config => WrappedComponent => {
@@ -64,11 +80,13 @@ const configurable = config => WrappedComponent => {
 		}
 
 		static defaultProps = {
+			id: 1,
+			lens: lensIndex(0),
 			parentLens: compose(lensIndex(0), lensProp("children")),
 		}
 
 		// identify the component for reference in componentState
-		static uniqueID = uuid();
+
 
 		componentDidMount() {
 			this.setState({ // eslint-disable-line
@@ -118,6 +136,7 @@ const configurable = config => WrappedComponent => {
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
+			const { parentLens, lens } = this.props;
 
 			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
 
@@ -126,25 +145,35 @@ const configurable = config => WrappedComponent => {
 				append(NewComponent)
 			)([this.state.props.children]);
 
+			const cleanedProps = getCleanProps(this.state.props);
+
 			const componentTree = newChildren.filter(c => c).map((Child, i) => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
 
-				const { parentLens } = this.props;
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
+				const thisLens = compose(parentLens, lensIndex(i - 1));
+				// TODO -> the parent props are now put in the state. This is not what we want.
+				// should create an update function as well, where props are updated.
+				const uniqueID = uuid();
 
-				// TODO -> can we do this in the constructor of the new child component, so we at least have the correct props...?
-				addToState(this.uniqueID, value, parentLens, this.state.props);
+				console.log("cleanedProps", cleanedProps);
+				addToState(uniqueID, value, parentLens, cleanedProps);
 
-				return <Child key={this.uniqueID} removeChild={this.removeChild} id={this.uniqueID} parentLens={deeperLens} />; // eslint-disable-line
+				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={thisLens} parentLens={deeperLens}/>; // eslint-disable-line
 			});
 
 			// dom state update
 			const propValue = NewComponent ? componentTree : value;
+			const newProps = set(propLens, propValue, this.state.props);
 
 			this.setState({
-				props: set(propLens, propValue, this.state.props),
+				props: newProps,
+			}, () => {
+				const moreCleanedProps = getCleanProps(this.state.props);
+
+				updateState(this.props.id, lens, moreCleanedProps);
 			});
 		}
 
@@ -230,6 +259,8 @@ const configurable = config => WrappedComponent => {
 						>
 							{"delete"}
 						</div>
+
+						<div onClick={safeClick(() => printJSX())}>{"print JSX"}</div>
 						{propList}
 					</div>
 				);
@@ -237,13 +268,10 @@ const configurable = config => WrappedComponent => {
 		}
 
 
-
 		render() {
 			const { children, ...restProps } = this.state.props;
 
-			const string = generateJSX(componentState);
 
-			console.log("componentState", string.join(""));
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
