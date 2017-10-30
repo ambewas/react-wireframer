@@ -166,7 +166,7 @@ const configurable = config => WrappedComponent => {
 
 			const cleanedProps = getCleanProps(this.state.props);
 
-			const componentTree = newChildren.filter(c => c).map((Child, i) => {
+			const componentTree = newChildren.filter(c => c).map(Child => {
 				if (typeof Child === "object" || typeof Child === "string") {
 					return Child;
 				}
@@ -191,7 +191,6 @@ const configurable = config => WrappedComponent => {
 				// update component props in componentState
 				const newCleanedProps = getCleanProps(this.state.props);
 
-				// TODO -> the lens is not always correct when we are removing things, apparently.
 				updateState(this.props.id, lens, newCleanedProps);
 			});
 		}
@@ -208,6 +207,8 @@ const configurable = config => WrappedComponent => {
 			const keys = Object.keys(components);
 
 			const componentList = keys.map(key => {
+				const DisplayComponent = components[key];
+
 				return (
 					<div
 						key={key}
@@ -215,6 +216,7 @@ const configurable = config => WrappedComponent => {
 						onClick={safeClick(() => this.setPropState(listedProp, components[key]))}
 					>
 						{key}
+						<DisplayComponent />
 					</div>
 				);
 			});
