@@ -17,6 +17,7 @@ import {
 
 import uuid from "uuid/v1";
 import generateJSX from "./generateJSX";
+import PropTypes from "prop-types";
 
 const safeClick = fn => e => {
 	e.preventDefault();
@@ -88,7 +89,7 @@ const getCleanProps = (props) => omit(["children", "removeChild", "id", "lens"],
 const printJSX = () => {
 	const string = generateJSX(componentState);
 
-	console.log("componentState", string.join(""));
+	console.log("componentState", string.join("")); // eslint-disable-line no-console
 };
 
 const configurable = config => WrappedComponent => {
@@ -103,19 +104,26 @@ const configurable = config => WrappedComponent => {
 		static defaultProps = {
 			id: 1,
 			lens: lensById(1),
+			removeChild: () => console.error("cannot delete root component"), // eslint-disable-line no-console
+		}
+
+		static propTypes = {
+			id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+			lens: PropTypes.func,
+			removeChild: PropTypes.func,
 		}
 
 		componentDidMount() {
 			// TODO -> the parent props are also passed to the children; we don't want that..
 
-			this.setState({ // eslint-disable-line
+			this.setState({ // eslint-disable-line react/no-did-mount-set-state
 				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
 		}
 
 		getWrappedComponentProps = () => {
 			// TODO -> should be possible to add some prop values before rendering the component.
-			// because yeah well.. we don't really have a way of accessing the default props of the component, now do we...?
+			// because yeah well.. we don't really have a way of accessing the default props of the component, at least not for a functional component, now do we...?
 			if (WrappedComponent.propTypes) {
 				const keys = Object.keys(WrappedComponent.propTypes);
 				const CDummy = configurable(config)(DummyComponent);
@@ -178,7 +186,7 @@ const configurable = config => WrappedComponent => {
 				// add this specific child to componentState
 				addToState(uniqueID, value, childrenLens, cleanedProps);
 
-				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={deeperLens} />; // eslint-disable-line
+				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={deeperLens} />;
 			});
 
 			// dom state update
@@ -276,7 +284,7 @@ const configurable = config => WrappedComponent => {
 						}}
 					>
 						<div
-							onClick={safeClick(() => this.props.removeChild(this.props.id))} // eslint-disable-line
+							onClick={safeClick(() => this.props.removeChild(this.props.id))}
 						>
 							{"delete"}
 						</div>
@@ -296,7 +304,6 @@ const configurable = config => WrappedComponent => {
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
 					onClick={safeClick(() => this.setState({ propSwitcher: !this.state.propSwitcher }))}
-					ref={c => this.componentRef = c} // eslint-disable-line
 				>
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 					<WrappedComponent {...restProps}>

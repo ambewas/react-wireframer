@@ -5,8 +5,6 @@ import Button from "../../components/button";
 import configurated from "../../helpers/configurated";
 const CButton = configurated(Button);
 
-import { compose, lensIndex, lensProp } from "ramda";
-
 class Main extends Component {
 
 	render() {
