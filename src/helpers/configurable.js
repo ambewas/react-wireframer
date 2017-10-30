@@ -151,6 +151,8 @@ const configurable = config => WrappedComponent => {
 					return Child;
 				}
 
+				// TODO -> refactor this without the lensIndex based on array index. Maybe do something with the uniqueID, because it is messing with
+				// the correct indexes, I think.
 				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
 				const thisLens = compose(parentLens, lensIndex(i - 1));
 				const uniqueID = uuid();
@@ -172,7 +174,7 @@ const configurable = config => WrappedComponent => {
 				const newCleanedProps = getCleanProps(this.state.props);
 				// TODO -> the lens is not always correct when we are removing things, apparently.
 
-				updateState(this.props.id, lens, newCleanedProps);
+				// updateState(this.props.id, lens, newCleanedProps);
 			});
 		}
 
