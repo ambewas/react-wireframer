@@ -1,17 +1,15 @@
 import React, { Component } from "react";
 
 import Row from "../../components/row";
-import Button from "../../components/button";
 import configurated from "../../helpers/configurated";
-const CButton = configurated(Button);
+const CRow = configurated(Row);
 
-class Main extends Component {
-
+class Main extends Component { // eslint-disable-line
 	render() {
 		return (
-			<Row>
-				<CButton getProps={this.getProps} />
-			</Row>
+			<CRow>
+				{"lets do this"}
+			</CRow>
 		);
 	}
 }

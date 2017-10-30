@@ -91,6 +91,7 @@ const configurable = config => WrappedComponent => {
 		}
 
 		setPropState = (prop, value) => {
+			// TODO -> should we split this up in setting prop values vs children...?
 			const propLens = lensProp(prop);
 			const { lens } = this.props;
 
@@ -152,8 +153,7 @@ const configurable = config => WrappedComponent => {
 						style={{ padding: 30, border: "4px solid grey" }}
 						onClick={safeClick(() => this.setPropState(listedProp, components[key]))}
 					>
-						{key}
-						<DisplayComponent>{"example"}</DisplayComponent>
+						<DisplayComponent>{key}</DisplayComponent>
 					</div>
 				);
 			});
