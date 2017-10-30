@@ -1,5 +1,20 @@
 import React, { Component } from "react";
-import { propEq, lensIndex, lensPath, omit, lensProp, view, set, append, flatten, reject, compose, over } from "ramda";
+import {
+	propEq,
+	lensIndex,
+	lensPath,
+	omit,
+	lensProp,
+	view,
+	set,
+	append,
+	flatten,
+	reject,
+	compose,
+	findIndex,
+	map,
+	update,
+	over } from "ramda";
 import uuid from "uuid/v1";
 import generateJSX from "./generateJSX";
 
@@ -8,6 +23,14 @@ const safeClick = fn => e => {
 	e.stopPropagation();
 	return fn && fn(e);
 };
+
+const lensMatching = pred => (toF => entities => {
+	const index = findIndex(pred, entities);
+
+	return map(entity => update(index, entity, entities), toF(entities[index]));
+});
+
+const lensById = compose(lensMatching, propEq("id"));
 
 const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disable-line
 
@@ -64,6 +87,7 @@ const updateState = (id, lens, props) => {
 const getCleanProps = (props) => omit(["children", "parentLens", "removeChild", "id", "lens"], props);
 
 const printJSX = () => {
+	console.log("componentState", componentState);
 	const string = generateJSX(componentState);
 
 	console.log("componentState", string.join(""));
@@ -80,8 +104,8 @@ const configurable = config => WrappedComponent => {
 
 		static defaultProps = {
 			id: 1,
-			lens: lensIndex(0),
-			parentLens: compose(lensIndex(0), lensProp("children")),
+			lens: lensById(1),
+			// parentLens: ,
 		}
 
 		// identify the component for reference in componentState
@@ -153,14 +177,24 @@ const configurable = config => WrappedComponent => {
 
 				// TODO -> refactor this without the lensIndex based on array index. Maybe do something with the uniqueID, because it is messing with
 				// the correct indexes, I think.
-				const deeperLens = compose(parentLens, lensIndex(i - 1), lensProp("children"));
-				const thisLens = compose(parentLens, lensIndex(i - 1));
+				// const deeperLens = compose(lensById(this.props.id));
+				// const parentChildrenLens = compose(deeperLens, lensProp("children"));
+
+				// console.log("view(parentChildrenLens, componentState)", view(parentChildrenLens, componentState));
+				// console.log("componentState", componentState);
+				// console.log("view(deeperLens, componentState // entire object", view(deeperLens, componentState));
+				// // console.log("view(parentChildrenLens, componentState // only the children", view(parentChildrenLens, componentState));
+				// const idLens = lensById(this.props.id);
+				// const thisLens = compose(parentLens, lensIndex(i - 1));
+
 				const uniqueID = uuid();
+				const childrenLens = compose(lens, lensProp("children"));
+				const deeperLens = compose(childrenLens, lensById(uniqueID));
 
 				// add this specific child to componentState
-				addToState(uniqueID, value, parentLens, cleanedProps);
-
-				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={thisLens} parentLens={deeperLens}/>; // eslint-disable-line
+				addToState(uniqueID, value, childrenLens, cleanedProps);
+				console.log("componentState", componentState);
+				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={deeperLens} />; // eslint-disable-line
 			});
 
 			// dom state update
@@ -172,9 +206,9 @@ const configurable = config => WrappedComponent => {
 			}, () => {
 				// update component props in componentState
 				const newCleanedProps = getCleanProps(this.state.props);
-				// TODO -> the lens is not always correct when we are removing things, apparently.
 
-				// updateState(this.props.id, lens, newCleanedProps);
+				// TODO -> the lens is not always correct when we are removing things, apparently.
+				updateState(this.props.id, lens, newCleanedProps);
 			});
 		}
 
@@ -260,7 +294,7 @@ const configurable = config => WrappedComponent => {
 						>
 							{"delete"}
 						</div>
-
+						{this.props.id}
 						<div onClick={safeClick(() => printJSX())}>{"print JSX"}</div>
 						{propList}
 					</div>
