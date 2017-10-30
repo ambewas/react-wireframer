@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import {
 	propEq,
-	lensIndex,
 	lensPath,
 	omit,
 	lensProp,
@@ -14,7 +13,8 @@ import {
 	findIndex,
 	map,
 	update,
-	over } from "ramda";
+} from "ramda";
+
 import uuid from "uuid/v1";
 import generateJSX from "./generateJSX";
 
