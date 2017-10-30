@@ -12,7 +12,7 @@ class Main extends Component {
 	render() {
 		return (
 			<Row>
-				<CButton getProps={this.getProps} parentLens={compose(lensIndex(0), lensProp("children"))} />
+				<CButton getProps={this.getProps} />
 			</Row>
 		);
 	}

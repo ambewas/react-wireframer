@@ -47,20 +47,21 @@ let componentState = [{
 const setState = (newState) => componentState = newState;
 
 const removeFromState = (lens, id) => {
+	const childrenLens = compose(lens, lensProp("children"));
 	const byId = (component) => view(lensProp("id"), component) === id;
 
 	const newArray = compose(
 		reject(byId),
-		view(lens)
+		view(childrenLens)
 	)(componentState);
 
-	const newState = set(lens, newArray, componentState);
+	const newState = set(childrenLens, newArray, componentState);
 
 	// side effect. How shall we contain this...?
 	setState(newState);
 };
 
-const addToState = (uniqueID, value, parentLens, props) => {
+const addToState = (uniqueID, value, lens, props) => {
 	// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
 	const newComponent = {
 		id: uniqueID,
@@ -68,26 +69,23 @@ const addToState = (uniqueID, value, parentLens, props) => {
 		children: [],
 		props: props,
 	};
-	const newArray = compose(append(newComponent), view(parentLens))(componentState);
-	const newState = set(parentLens, newArray, componentState);
+	const newArray = compose(append(newComponent), view(lens))(componentState);
+	const newState = set(lens, newArray, componentState);
 
 	// side effect. How shall we contain this...?
 	setState(newState);
 };
 
-
 const updateState = (id, lens, props) => {
-	console.log("props", props);
 	const propsLens = compose(lens, lensProp("props"));
 	const newState = set(propsLens, props, componentState);
 
 	setState(newState);
 };
 
-const getCleanProps = (props) => omit(["children", "parentLens", "removeChild", "id", "lens"], props);
+const getCleanProps = (props) => omit(["children", "removeChild", "id", "lens"], props);
 
 const printJSX = () => {
-	console.log("componentState", componentState);
 	const string = generateJSX(componentState);
 
 	console.log("componentState", string.join(""));
@@ -105,13 +103,11 @@ const configurable = config => WrappedComponent => {
 		static defaultProps = {
 			id: 1,
 			lens: lensById(1),
-			// parentLens: ,
 		}
 
-		// identify the component for reference in componentState
-
-
 		componentDidMount() {
+			// TODO -> the parent props are also passed to the children; we don't want that..
+
 			this.setState({ // eslint-disable-line
 				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
@@ -139,9 +135,9 @@ const configurable = config => WrappedComponent => {
 			const propLens = lensProp("children");
 
 			// find the child in componentState and remove it there as well.
-			const { parentLens } = this.props;
+			const { lens } = this.props;
 
-			removeFromState(parentLens, id);
+			removeFromState(lens, id);
 
 			// component update for representation in the DOM.
 			const newChildren = reject(byPropId, this.state.props.children);
@@ -159,7 +155,7 @@ const configurable = config => WrappedComponent => {
 
 		setPropState = (prop, value) => {
 			const propLens = lensProp(prop);
-			const { parentLens, lens } = this.props;
+			const { lens } = this.props;
 
 			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
 
@@ -175,25 +171,13 @@ const configurable = config => WrappedComponent => {
 					return Child;
 				}
 
-				// TODO -> refactor this without the lensIndex based on array index. Maybe do something with the uniqueID, because it is messing with
-				// the correct indexes, I think.
-				// const deeperLens = compose(lensById(this.props.id));
-				// const parentChildrenLens = compose(deeperLens, lensProp("children"));
-
-				// console.log("view(parentChildrenLens, componentState)", view(parentChildrenLens, componentState));
-				// console.log("componentState", componentState);
-				// console.log("view(deeperLens, componentState // entire object", view(deeperLens, componentState));
-				// // console.log("view(parentChildrenLens, componentState // only the children", view(parentChildrenLens, componentState));
-				// const idLens = lensById(this.props.id);
-				// const thisLens = compose(parentLens, lensIndex(i - 1));
-
 				const uniqueID = uuid();
 				const childrenLens = compose(lens, lensProp("children"));
 				const deeperLens = compose(childrenLens, lensById(uniqueID));
 
 				// add this specific child to componentState
 				addToState(uniqueID, value, childrenLens, cleanedProps);
-				console.log("componentState", componentState);
+
 				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={deeperLens} />; // eslint-disable-line
 			});
 
