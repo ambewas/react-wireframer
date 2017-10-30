@@ -124,7 +124,7 @@ const configurable = config => WrappedComponent => {
 					return {
 						...acc,
 						[key]: undefined,
-						children: <CDummy removeChild={this.removeChild} id={0}>{"some dummy text"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
+						children: <CDummy removeChild={this.removeChild} id={0}>{"placeholder"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
 					};
 				}, {});
 			}
@@ -216,7 +216,7 @@ const configurable = config => WrappedComponent => {
 						onClick={safeClick(() => this.setPropState(listedProp, components[key]))}
 					>
 						{key}
-						<DisplayComponent />
+						<DisplayComponent>{"example"}</DisplayComponent>
 					</div>
 				);
 			});

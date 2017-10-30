@@ -13,7 +13,6 @@ const getPropString = (props) => {
 const getElementString = (element, children, props) => `<${element}${getPropString(props).join("")}>${children.join("")}</${element}>`;
 
 const generateJSX = (json) => {
-	console.log("json", json);
 	return json.map((jsonElement) => {
 		const element = jsonElement.type;
 		const elementString = getElementString(element, generateJSX(jsonElement.children), jsonElement.props);

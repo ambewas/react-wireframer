@@ -8,7 +8,7 @@ class ClassComponent extends Component {
 	}
 	render() {
 		return (
-			<div>{"I am a class"}{this.props.children}</div>
+			<div>{this.props.children}</div>
 		);
 	}
 }
