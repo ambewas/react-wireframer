@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import uuid from "uuid/v1";
+import PropTypes from "prop-types";
 import {
 	lensPath,
 	lensProp,
@@ -9,9 +11,6 @@ import {
 	reject,
 	compose,
 } from "ramda";
-
-import uuid from "uuid/v1";
-import PropTypes from "prop-types";
 
 import {
 	safeClick,
@@ -27,7 +26,6 @@ import {
 const configurable = config => WrappedComponent => {
 	return class ConfigurableComponent extends Component {
 		state = {
-			child: "aa",
 			props: {},
 			listedProp: undefined,
 			textInput: "",
@@ -47,7 +45,6 @@ const configurable = config => WrappedComponent => {
 
 		componentDidMount() {
 			// TODO -> the parent props are also passed to the children; we don't want that..
-
 			this.setState({ // eslint-disable-line react/no-did-mount-set-state
 				props: { ...this.getWrappedComponentProps(), ...this.props },
 			});
