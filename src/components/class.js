@@ -5,10 +5,16 @@ class ClassComponent extends Component {
 	state = {}
 	static propTypes = {
 		children: PropTypes.node,
+		someProp: PropTypes.func,
 	}
+
+	static defaultProps = {
+		someProp: "hehehe",
+	}
+
 	render() {
 		return (
-			<div>{this.props.children}</div>
+			<div className={this.props.someProp} style={{background: 'green', height: '50px', width: '100px'}}>{this.props.children}</div> // eslint-disable-line
 		);
 	}
 }
