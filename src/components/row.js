@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Row = ({ children }) => (
+const Row = ({ children = "row" }) => (
 	<div style={{ padding: 30, background: "#ffefef" }}>
 		{children}
 	</div>

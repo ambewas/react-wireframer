@@ -1,15 +1,14 @@
 import React, { Component } from "react";
 
 import Row from "../../components/row";
-import configurated from "../../helpers/configurated";
-const CRow = configurated(Row);
+import Button from "../../components/button";
+
+import Layouter from "../../helpers/layouter";
 
 class Main extends Component { // eslint-disable-line
 	render() {
 		return (
-			<CRow>
-				{"lets do this"}
-			</CRow>
+			<Layouter components={{ Button, Row }}/>
 		);
 	}
 }

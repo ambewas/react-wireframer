@@ -1,147 +1,121 @@
 /**
- * philosophy
- * ----------
- *
- * the configurable HOC is minimalistic: it exposes the configurable props of your components into
- * a user friendly interface where everyone (designers included) are able to edit the look and feel
- * of your component library.
- *
- * To keep this project frictionless, only string/number props are exposed for now. Technically it
- * should be possible to do the same for functions, objects and arrays. Development of this is
- * on the roadmap, but we want to keep this first version as minimal as possible.
- *
- * Because the HOC works recursively, it even allows the user to create small pieces of a user interface,
- * by exposing the children prop, which can be completed with any of your library's components.
- *
- * Technically, this makes it possible to create an entire wireframing application with only using
- * "configurabled" components. The JSX that one should use for that piece of UI, can then be printed
- * out right from the interface, ready to be dropped in any piece of the application you're developing.
- *
- * The project assumes that you have "zero-configuration rendereable components". The most practical
- * way of achieving this, is by having default props for all of your components (which, as a library
- * developer, you should do as a best practice anyway).
- *
- * i.e. a developer should only have to enter <MyComponent/> in their application, and nothing should
- * crash. A default should always render.
- *
- */
-
-
-
-/**
- *
  * todo
  *
- * - HOW THE HELL DO WE START WRITING TESTS FOR THIS?! -- we really should, as it's going to be open sourced...
- *
- * - decouple the configurable component from the nesting system. Still make it possible to nest via children, but a drag/drop system would be better
- *   in fact, drag & drop would automatically fill out the children prop for that particular component.
- *
- * - hide other prop switchers.. in fact, make a decent UI for this entire thing.
- *
- * - add different input types for different prop types
- *
- * - add config object that contains the different prop options. Ideally, we should read this off the proptypes.. but that's not possible for now.
- *   so for example, if it's a oneOf propType -> render a dropdown menu with the choices.
- *
- * - propTypesToObject is unfeasible. It's not possible to get the possible prop types for, e.g., oneOf -- as those just return functions. Impossible to call an evaluation
- *   of proptypes at runtime yourself -- ESPECIALLY since these are not present in a react production bundle. So technically, we CANNOT even rely on propTypes to get the different
- * 	 keys of possible props, unless these are never stripped. This shouldn't be used in a production env anyway, so yeah... guess that might be OK.
- *
- * - another possibility is to use react doc-gen to generate an array of props and prop types from our component folder. This makes the entire project a bit more difficult to
- *   setup, though, as a user. Ideally, you should still JUST have to import this component from NPM & use it in your own projects.
- *
- *   So... why not allow a config object to be passed through and decouple the entire thing. The config input would then be the output of react-docgen &
- *   we can have guides to show people how to generate their component config themselves, without having to add everything in themselves.
- *
- *   Alternatively, we could force people to add another static to their components, that include our own implementation of propTypes, which we can then use
- *   to generate the props. However, this is already a bit much to ask I think. Better would be to just generate the possible props from react-docgen.
- *
- *   OOOOOOOOOOORRRrrr... allow the browser to simply show the proptype warning & possibly extract the text from there...??
- * 		-- tried it, it's impossible.
- *
- * 	 temporary solution -> watch for object & function prop types & don't show these as being configurable.
- *
- * - prettify the UI
- *
- * - possibly split setting 'children' and setting a text node
+ * shape inputs?? !
+ * set arrays as values on array props
+ * remove on backspace
  */
 
 import React, { Component } from "react";
-import uuid from "uuid/v1";
 import PropTypes from "prop-types";
-import {
-	lensPath,
+
+import R, {
 	lensProp,
-	view,
 	set,
-	append,
-	flatten,
-	reject,
-	compose,
+	omit,
+	propEq,
+	prop as propView,
 } from "ramda";
 
 import {
 	safeClick,
-	lensById,
-	DummyComponent,
-	removeFromState,
-	addToState,
-	updateState,
+	getPropTypeShape,
 	getCleanProps,
-	printJSX,
 } from "./helpers";
 
-import propTypesToObject from "./propTypesToObject";
+import { DropTarget } from "react-dnd";
 
-const configurable = config => WrappedComponent => {
-	return class ConfigurableComponent extends Component {
-		state = {
-			props: {},
-			listedProp: undefined,
-			textInput: "",
+
+
+const dropSource = {
+	drop(props, monitor) {
+		const hasDroppedOnChild = monitor.didDrop();
+		// prevent deep updates
+
+		if (hasDroppedOnChild) {
+			return;
 		}
 
-		static defaultProps = {
-			id: 1,
-			lens: lensById(1),
-			removeChild: () => console.error("cannot delete root component"), // eslint-disable-line no-console
-		}
+		// add component to hierarchy
+		const draggedComponent = monitor.getItem();
 
+		props.ctx.addToHierarchy(draggedComponent.componentType, props.hierarchyPath);
+	},
+	canDrop(props, monitor) {
+		return true;
+	},
+};
+
+
+function dropCollect(connect, monitor) {
+	return {
+		connectDropTarget: connect.dropTarget(),
+		isOverCurrent: monitor.isOver({ shallow: true }),
+	};
+}
+
+const configurable = WrappedComponent => {
+	class ConfigurableComponent extends Component {
 		static propTypes = {
-			id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-			lens: PropTypes.func,
-			removeChild: PropTypes.func,
+			children: PropTypes.any,
+			hierarchyPath: PropTypes.string,
+			isOverCurrent: PropTypes.bool,
+			connectDropTarget: PropTypes.func,
+			ctx: PropTypes.object,
 		}
 
-		componentDidMount() {
-			/**
-			 * we take the props of the wrapped component and copy them to the state.
-			 * from here we can start to do prop manipulation & pass the modified prop state
-			 * to the next recursively rendered Configurable component
-			 */
-			this.setState({ // eslint-disable-line react/no-did-mount-set-state
-				props: { children: this.props.children, ...this.getWrappedComponentProps() },
-			});
+		constructor(props) {
+			super(props);
+
+			const wrappedComponentProps = this.getWrappedComponentProps();
+
+			this.state = {
+				props: { ...wrappedComponentProps, ...this.props },
+				listedProp: undefined,
+				propInputs: { ...wrappedComponentProps, ...this.props },
+			};
+		}
+
+		componentWillUnmount() {
+			// remove any event listeners if there were any added
+			window.removeEventListener("keyup", this.handleKeyUp);
+		}
+
+		componentDidUpdate() {
+			if (this.state.propSwitcher) {
+				window.addEventListener("keyup", this.handleKeyUp);
+			}
+		}
+
+		handleKeyUp = (e) => {
+			// remove specific element from hierarchy if we're not currently filling out anything
+			if (e.keyCode === 8 && !this.state.listedProp) {
+				this.props.ctx.removeFromHierarchy(this.props.hierarchyPath);
+			}
 		}
 
 		getWrappedComponentProps = () => {
 			if (WrappedComponent.propTypes) {
-				const propTypesObject = propTypesToObject({
-					propTypes: WrappedComponent.propTypes,
-				});
+				// filter out all function props; We can't do anything with them anyway.
+				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-				const keys = Object.keys(WrappedComponent.propTypes);
-				const CDummy = configurable(config)(DummyComponent);
+				const cleanedKeys = omit(
+					R.compose(
+						R.keys,
+						R.filter(propEq("type", "function")),
+					)(propTypeDefinitions),
+					propTypeDefinitions,
+				);
 
-				const props =  keys.reduce((acc, key) => {
-					// strip all props that are NOT a string or a node. We ignore other props for now.
-					const keyToAdd = propTypesObject[key].type === "string" || propTypesObject[key].type === "node" ? { [key]: undefined } : undefined;
+				// build a props object based on these keys and shapeTypes.
+				// TODO can't init these with empty string due to propTypes (controlled/uncontrolled warning is still here). Perhaps provide a sensible default ourselves...?
+				const props = Object.keys(cleanedKeys).reduce((acc, key) => {
+					const keyValue = propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
 					return {
 						...acc,
-						...keyToAdd,
-						children: <CDummy removeChild={this.removeChild} id={0}>{"placeholder"}</CDummy>, // not logging this one to state, because is only dummy to be removed.
+						[key]: keyValue,
+						children: this.props.children,
 					};
 				}, {});
 
@@ -149,70 +123,10 @@ const configurable = config => WrappedComponent => {
 			}
 		}
 
-		removeChild = (id) => {
-			const byPropId = (component) => view(lensPath(["props", "id"]), component) === id;
-			const propLens = lensProp("children");
-
-			// find the child in componentState and remove it there as well.
-			const { lens } = this.props;
-
-			removeFromState(lens, id);
-
-			// component update for representation in the DOM.
-			const newChildren = reject(byPropId, this.state.props.children);
-
-			if (Array.isArray(this.state.props.children)) {
-				this.setState({
-					props: set(propLens, newChildren, this.state.props),
-				});
-			} else {
-				this.setState({
-					props: set(propLens, "", this.state.props),
-				});
-			}
-		}
-
-		setPropState = (prop, value) => {
-			// TODO -> should we split this up in setting prop values vs children...?
-			const propLens = lensProp(prop);
-			const { lens } = this.props;
-
-			const NewComponent = prop === "children" && typeof value === "function" ? configurable(config)(value) : undefined;
-
-			const newChildren = compose(
-				flatten,
-				append(NewComponent)
-			)([this.state.props.children]);
-
-			const cleanedProps = getCleanProps(this.state.props);
-
-			const componentTree = newChildren.filter(c => c).map(Child => {
-				if (typeof Child === "object" || typeof Child === "string") {
-					return Child;
-				}
-
-				const uniqueID = uuid();
-				const childrenLens = compose(lens, lensProp("children"));
-				const deeperLens = compose(childrenLens, lensById(uniqueID));
-
-				// add this specific child to componentState
-				addToState(uniqueID, value, childrenLens, cleanedProps);
-
-				return <Child key={uniqueID} removeChild={this.removeChild} id={uniqueID} lens={deeperLens} />;
-			});
-
-			// dom state update
-			const propValue = NewComponent ? componentTree : value;
-			const newProps = set(propLens, propValue, this.state.props);
-
-			this.setState({
-				props: newProps,
-			}, () => {
-				// update component props in componentState
-				const newCleanedProps = getCleanProps(this.state.props);
-
-				updateState(this.props.id, lens, newCleanedProps);
-			});
+		setPropInHierarhcy = (ctx, prop, value) => {
+			// update the specific prop in the hierarhcy from the context
+			// Layouter will re-render, and updates will propagate.
+			ctx.updatePropInHierarchy(prop, this.props.hierarchyPath, value);
 		}
 
 		showPropList = (prop) => {
@@ -221,64 +135,79 @@ const configurable = config => WrappedComponent => {
 			});
 		}
 
-		renderPropList = () => {
-			const { components } = config;
-			const { listedProp, textInput } = this.state;
-			const keys = Object.keys(components);
+		handlePropInput = (e) => {
+			// text-input values update. No need to propagate this in the hierarchy.
+			const { listedProp, propInputs } = this.state;
+			const newState = set(R.lensProp(listedProp), e.target.value, propInputs);
 
-			const componentList = keys.map(key => {
-				const DisplayComponent = components[key];
+			console.log("e.target.value", e.target.value);
+			this.setState({ propInputs: newState });
+		}
 
+
+		handleSelectInput = (e, ctx) => {
+			// text-input values update. No need to propagate this in the hierarchy.
+			const { listedProp, propInputs } = this.state;
+			const newState = set(R.lensProp(listedProp), e.target.value, propInputs);
+
+			// TODO -- add support for nested values
+			this.setState({ propInputs: newState }, () => this.setPropInHierarhcy(ctx, listedProp, newState[listedProp]));
+		}
+
+		renderPropInput = (ctx) => {
+			const { listedProp, propInputs } = this.state;
+			// TODO -- add support for nested values
+			const inputValue = propInputs[listedProp];
+
+			// TODO -- show different inputs for different props. For example, we want a drop down menu for oneOf proptypes
+			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
+
+			if (propTypeDefinitions[listedProp].type === "enum") {
 				return (
-					<div
-						key={key}
-						style={{ padding: 30, border: "4px solid grey" }}
-						onClick={safeClick(() => this.setPropState(listedProp, components[key]))}
-					>
-						<DisplayComponent>{key}</DisplayComponent>
-					</div>
+					<select name={listedProp} value={inputValue} onChange={(e) => this.handleSelectInput(e, ctx)}>
+						<option value="red">red</option>
+						<option value="green">green</option>
+						<option value="blue">blue</option>
+					</select>
 				);
-			});
-
+			}
 			return (
 				<div>
 					<div>
 						<input
 							onClick={e => e.stopPropagation()}
 							type="text"
-							onChange={safeClick((e) => this.setState({ textInput: e.target.value }))}
-							value={textInput}
+							onChange={this.handlePropInput}
+							value={inputValue}
 						/>
 						<span
-							onClick={safeClick(() => this.setPropState(listedProp, textInput))}
+							onClick={safeClick(() => this.setPropInHierarhcy(ctx, listedProp, inputValue))}
 						>
 							{"SET"}
 						</span>
-						{listedProp === "children" && componentList}
 					</div>
 				</div>
 			);
 		}
 
-		renderPropSwitcher = () => {
+		renderPropSwitcher = (ctx) => {
 			const { listedProp, props } = this.state;
 
+			// render a list of all props that can be edited. We'll omit any props added by react dnd etc.
 			if (props) {
-				const keys = Object.keys(props);
-
+				const cleanProps = getCleanProps(props);
+				const keys = Object.keys(cleanProps);
 				const propList = keys.map(prop => {
 					return (
 						<div
-							className="fc-flex-container"
 							key={prop}
 							onClick={safeClick(() => this.showPropList(prop))}
 						>
 							{prop}
-							{listedProp && listedProp === prop && this.renderPropList()}
+							{listedProp && listedProp === prop && this.renderPropInput(ctx)}
 						</div>
 					);
 				});
-				const buttonStyle = { marginTop: 50, border: "1px solid red", padding: 20 };
 
 				return (
 					<div
@@ -297,40 +226,42 @@ const configurable = config => WrappedComponent => {
 						}}
 					>
 						{propList}
-						<div
-							style={buttonStyle}
-							onClick={safeClick(() => this.props.removeChild(this.props.id))}
-						>
-							{"delete this component"}
-						</div>
-						<div
-							style={buttonStyle}
-							onClick={safeClick(() => printJSX())}
-						>
-							{"print JSX"}
-						</div>
 					</div>
 				);
 			}
 		}
 
+		handleComponentClick = (e) => {
+			e.stopPropagation();
+			this.setState({ propSwitcher: !this.state.propSwitcher });
+		}
 
 		render() {
 			const { children, ...restProps } = this.state.props;
+			const { isOverCurrent, connectDropTarget, ctx } = this.props;
+
+			const style = isOverCurrent ? { borderLeft: "4px solid green" } : {};
 
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
-					onClick={safeClick(() => this.setState({ propSwitcher: !this.state.propSwitcher }))}
+					onClick={((e) => this.handleComponentClick(e, ctx))}
 				>
-					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
-					<WrappedComponent {...restProps}>
-						{children}
-					</WrappedComponent>
+					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher(ctx)}</div>
+					{
+						connectDropTarget(
+							<div style={style}>
+								<WrappedComponent {...restProps}>
+									{children || this.props.children}
+								</WrappedComponent>
+							</div>
+						)}
 				</div>
 			);
 		}
-	};
+	}
+	return DropTarget("card", dropSource, dropCollect)(ConfigurableComponent);
 };
 
 export default configurable;
+

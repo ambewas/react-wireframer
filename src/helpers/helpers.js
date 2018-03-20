@@ -1,28 +1,14 @@
-import React from "react";
-import {
-	propEq,
+import R, {
 	omit,
-	lensProp,
-	view,
 	set,
-	append,
-	reject,
-	compose,
-	findIndex,
+	lensPath,
 	map,
-	update,
+	evolve,
+	ifElse,
+	propEq,
+	append,
 } from "ramda";
-import generateJSX from "./generateJSX";
-
-let componentState = [{
-	id: 1,
-	type: "rootComponent",
-	props: {
-		background: "red",
-		color: "white",
-	},
-	children: [],
-}];
+// import generateJSX from "./generateJSX";
 
 export const safeClick = fn => e => {
 	e.preventDefault();
@@ -30,59 +16,49 @@ export const safeClick = fn => e => {
 	return fn && fn(e);
 };
 
-const lensMatching = pred => (toF => entities => {
-	const index = findIndex(pred, entities);
+// clean some props
+export const getCleanProps = (props) => omit(["connectDropTarget", "ctx", "hierarchyPath", "isOverCurrent"], props);
 
-	return map(entity => update(index, entity, entities), toF(entities[index]));
-});
+const recursiveUpdateById = (id, value, updateFn, objs) => map(
+	evolve({ props: { children: xs => Array.isArray(xs) ? recursiveUpdateById(id, value, updateFn, xs) : xs } }),
+	map(
+		ifElse(
+			propEq("id", id),
+			updateFn,
+			R.identity
+		),
+		objs
+	)
+);
 
-export const lensById = compose(lensMatching, propEq("id"));
+export const updateById = (id, prop, value, objs) => (
+	recursiveUpdateById(id, value, set(lensPath(["props", prop]), value), objs)
+);
 
-export const DummyComponent = ({ children }) => <div>{children}</div>; // eslint-disable-line react/prop-types
+export const addById = (id, value, objs) => (
+	recursiveUpdateById(id, value, evolve(
+		{
+			props: {
+				children: xs => Array.isArray(xs) ? append(value, xs) : [value],
+			},
+		}
+	), objs)
+);
 
-export const setState = (newState) => componentState = newState;
+export const removeById = (id, objs) => R.map(
+	R.evolve({ props: { children: xs => Array.isArray(xs) ? removeById(id, xs) : xs } }),
+	R.reject(R.propEq("id", id), objs)
+);
 
-export const removeFromState = (lens, id) => {
-	const childrenLens = compose(lens, lensProp("children"));
-	const byId = (component) => view(lensProp("id"), component) === id;
+export const getPropTypeShape = (shape) => {
+	const shapeKeys = Object.keys(shape);
 
-	const newArray = compose(
-		reject(byId),
-		view(childrenLens)
-	)(componentState);
+	const definition = shapeKeys.reduce((acc, curr) => {
+		return {
+			...acc,
+			[curr]: shape[curr].shapeTypes ? getPropTypeShape(shape[curr].shapeTypes) : undefined,
+		};
+	}, {});
 
-	const newState = set(childrenLens, newArray, componentState);
-
-	// side effect. How shall we contain this...?
-	setState(newState);
-};
-
-export const addToState = (uniqueID, value, lens, props) => {
-	// dont need all the stateprops of this configurable component in the componentState, so lets cleanup a bit.
-	const newComponent = {
-		id: uniqueID,
-		type: value.displayName || value.name,
-		children: [],
-		props: props,
-	};
-	const newArray = compose(append(newComponent), view(lens))(componentState);
-	const newState = set(lens, newArray, componentState);
-
-	// side effect. How shall we contain this...?
-	setState(newState);
-};
-
-export const updateState = (id, lens, props) => {
-	const propsLens = compose(lens, lensProp("props"));
-	const newState = set(propsLens, props, componentState);
-
-	setState(newState);
-};
-
-export const getCleanProps = (props) => omit(["children", "removeChild", "id", "lens"], props);
-
-export const printJSX = () => {
-	const string = generateJSX(componentState);
-
-	console.log("componentState", string.join("")); // eslint-disable-line no-console
+	return definition;
 };
