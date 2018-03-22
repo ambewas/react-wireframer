@@ -127,112 +127,118 @@ const configurable = (WrappedComponent, PropTypes) => {
 			});
 		}
 
-		handlePropInput = (e) => {
+		handlePropInput = (e, inputPath) => {
 			// text-input values update. No need to propagate this in the hierarchy.
-			const { listedProp, propInputs } = this.state;
-			const newState = set(lensProp(listedProp), e.target.value, propInputs);
+			const { propInputs } = this.state;
+			const newState = set(lensProp(inputPath), e.target.value, propInputs);
 
 			this.setState({ propInputs: newState });
 		}
 
 
-		handleSelectInput = (e) => {
-			// text-input values update. No need to propagate this in the hierarchy.
-			const { listedProp, propInputs } = this.state;
-			const newState = set(lensProp(listedProp), e.target.value, propInputs);
+		handleSelectInput = (e, inputPath) => {
+			e.stopPropagation();
+
+			const { propInputs } = this.state;
+			const newState = set(lensProp(inputPath), e.target.value, propInputs);
 
 			// TODO -- add support for nested values
-			this.setState({ propInputs: newState }, () => this.setPropInHierarhcy(listedProp, newState[listedProp]));
+			this.setState({ propInputs: newState }, () => this.setPropInHierarhcy(inputPath, newState[inputPath]));
 		}
 
-		renderSelectBox = (propType) => {
-			const { listedProp, inputValue } = this.state;
-			const options = propType.expectedValues;
+		renderSelectBox = (propTypeDefinition, inputPath) => {
+			const { propInputs } = this.state;
+
+			const selectValue = propInputs[inputPath];
+			const options = propTypeDefinition.expectedValues;
 			const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
 
 			return (
-				<select name={listedProp} value={inputValue} onChange={(e) => this.handleSelectInput(e)}>
+				<select name={inputPath} value={selectValue} onChange={(e) => this.handleSelectInput(e, inputPath)}>
 					{optionsArray}
 				</select>
 			);
 		}
 
-		renderInputBox = (inputValue) => {
-			const { listedProp } = this.state;
+		renderInputBox = (inputPath) => {
+			const { propInputs } = this.state;
+			const inputValue = propInputs[inputPath];
 
+			// console.log("propTypeDefinition", propTypeDefinition);
 			return (
 				<div>
 					<input
 						onClick={e => e.stopPropagation()}
 						type="text"
-						onChange={this.handlePropInput}
+						onChange={e => this.handlePropInput(e, inputPath)}
 						value={inputValue}
 					/>
 					<span
-						onClick={safeClick(() => this.setPropInHierarhcy(listedProp, inputValue))}
+						onClick={safeClick(() => this.setPropInHierarhcy(inputPath, inputValue))}
 					>
-						{"SET"}
+						{`SET ${  inputPath}`}
 					</span>
 				</div>
 			);
 		}
+
 		renderShape = (shape) => {
-			const getShapeSelectOrInput = (deepShape) => {
-				if (shape.expectedValues) {
-					return this.renderSelectBox(deepShape.type);
+			const shapeKeys = Object.keys(shape);
+			const inputs = shapeKeys.map(shapeKey => {
+
+				console.log("shape[shapeKey]", shape[shapeKey]);
+				if (shape[shapeKey].shapeTypes) {
+					// TODO -- save the returned components
+					console.log("found it");
+					return (
+						<div>
+							<div style={{ borderBottom: "2px solid blue" }}>{shapeKey}</div>
+							<div style={{ marginLeft: 20 }}>{this.renderShape(shape[shapeKey].shapeTypes)}</div>
+						</div>
+					);
 				}
+				return <div key={shapeKey}>{shapeKey}{this.getInputType(shape[shapeKey], shapeKey)}</div>;
+			});
 
-			};
-
+			return inputs;
 		}
 
-		getInputType = (propTypeDefinition, inputValue) => {
+		getInputType = (propTypeDefinition, propTypeKey) => {
+		// 	const { propInputs } = this.state;
+
 			if (propTypeDefinition && propTypeDefinition.type === "enum") {
-				return this.renderSelectBox(propTypeDefinition);
+				// TODO -- must also add value for initialising correctly.
+				return this.renderSelectBox(propTypeDefinition, propTypeKey);
 			}
 
-			return this.renderInputBox(inputValue);
+			if (propTypeDefinition && propTypeDefinition.type === "shape") {
+				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
+				console.log("propTypeDefinition", propTypeDefinition);
+				return this.renderShape(propTypeDefinition.shapeTypes);
+			}
 
+			return this.renderInputBox(propTypeKey);
 		}
 
-		renderPropInput = () => {
-			const { listedProp, propInputs } = this.state;
 
-			// TODO -- add support for nested values
-			const inputValue = propInputs[listedProp];
+		renderPropList = (propTypeDefinitions) => {
+			const propTypeKeys = Object.keys(propTypeDefinitions);
 
-			// TODO -- show different inputs for different props. For example, we want a drop down menu for oneOf proptypes
-			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-
-			if (propTypeDefinitions[listedProp] && propTypeDefinitions[listedProp].type === "shape") {
-				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
-				console.log("propTypeDefinitions[listedProp]", propTypeDefinitions[listedProp]);
-				return this.renderShape(propTypeDefinitions[listedProp].shapeTypes);
-			}
-
-			return this.getInputType(propTypeDefinitions[listedProp], inputValue);
-
+			return propTypeKeys.map(propTypeKey => {
+				return <div key={propTypeKey}>{propTypeKey}{this.getInputType(propTypeDefinitions[propTypeKey], propTypeKey)}</div>;
+			});
 		}
 
 		renderPropSwitcher = () => {
-			const { listedProp, props } = this.state;
-			const { ctx } = this.props;
+			const { props } = this.state;
+			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 			// render a list of all props that can be edited. We'll omit any props added by react dnd etc.
 
 			if (props) {
-				const cleanProps = getCleanProps(props);
-				const propKeys = Object.keys(cleanProps);
-				const propList = propKeys.map(prop => {
-					return (
-						<div
-							key={prop}
-							onClick={safeClick(() => this.showPropList(prop))}
-						>
-							{prop}
-							{listedProp && listedProp === prop && this.renderPropInput()}
-						</div>
-					);
-				});
+				// const cleanProps = getCleanProps(props);
+				// const propKeys = Object.keys(cleanProps);
+
+				const propList = this.renderPropList(propTypeDefinitions);
 
 				return (
 					<div
@@ -249,6 +255,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 							overflow: "scroll",
 							boxShadow: "0px 6px 14px black",
 						}}
+						onClick={e => e.stopPropagation()}
 					>
 						{propList}
 					</div>
@@ -270,13 +277,12 @@ const configurable = (WrappedComponent, PropTypes) => {
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
-					onClick={((e) => this.handleComponentClick(e, ctx))}
 				>
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 					{
 						connectDropTarget(
 							connectDragSource(
-								<div style={style}>
+								<div style={style} onClick={((e) => this.handleComponentClick(e))}>
 									<WrappedComponent {...restProps}>
 										{children || this.props.children}
 									</WrappedComponent>

@@ -38,6 +38,9 @@ Button.propTypes = {
 		baz: PropTypes.oneOf(["shoe", "store"]),
 		boe: PropTypes.shape({
 			lala: PropTypes.number,
+			foela: PropTypes.shape({
+				tralal: PropTypes.number,
+			}),
 		}),
 	}),
 };
