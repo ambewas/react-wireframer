@@ -5,7 +5,7 @@ class ClassComponent extends Component {
 	state = {}
 	static propTypes = {
 		children: PropTypes.node,
-		someProp: PropTypes.func,
+		someProp: PropTypes.string,
 	}
 
 	static defaultProps = {

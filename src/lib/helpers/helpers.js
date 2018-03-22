@@ -19,7 +19,7 @@ export const safeClick = fn => e => {
 };
 
 // clean some props
-export const getCleanProps = (props) => omit(["connectDropTarget", "ctx", "hierarchyPath", "isOverCurrent"], props);
+export const getCleanProps = (props) => omit(["connectDropTarget", "ctx", "hierarchyPath", "isOverCurrent", "componentType", "connectDragSource", "isDragging"], props);
 
 const recursiveUpdateById = (id, updateFn, objs) => map(
 	evolve({ props: { children: xs => Array.isArray(xs) ? recursiveUpdateById(id, updateFn, xs) : xs } }),

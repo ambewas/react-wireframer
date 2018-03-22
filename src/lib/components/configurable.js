@@ -236,7 +236,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			if (props) {
 				// const cleanProps = getCleanProps(props);
-				// const propKeys = Object.keys(cleanProps);
 
 				const propList = this.renderPropList(propTypeDefinitions);
 
@@ -274,6 +273,8 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			const style = isOverCurrent ? { borderLeft: "4px solid green" } : {};
 
+			const cleanProps = getCleanProps(restProps);
+
 			return (
 				<div
 					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
@@ -283,7 +284,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 						connectDropTarget(
 							connectDragSource(
 								<div style={style} onClick={((e) => this.handleComponentClick(e))}>
-									<WrappedComponent {...restProps}>
+									<WrappedComponent {...cleanProps}>
 										{children || this.props.children}
 									</WrappedComponent>
 								</div>
