@@ -1,117 +1,64 @@
-# [PROJECT-NAME] v1.0.0 #
-React boilerplate with:
-- testing framework (Jest)
-- state management example (Redux)
-- routing (React Router v4)
-- styles with scss
-- helmet for document `<head>` management
+# React NPM library starter kit
 
+[![Build Status](https://travis-ci.org/DimitriMikadze/create-react-library.svg?branch=master)](https://travis-ci.org/DimitriMikadze/create-react-library)
+[![Dependencies](https://img.shields.io/david/DimitriMikadze/create-react-library.svg)]()
+[![Dev Dependencies](https://img.shields.io/david/dev/DimitriMikadze/create-react-library.svg)]()
 
-# Table of contents #
+based on Facebook's <a href="https://github.com/facebookincubator/create-react-app" target="_blank">Create react app</a>.
+We are constantly updating repository with the updates of `create-react-app`, so we have all new features and bug fixes of it.
 
-* [Setup](#setup)
-    * [System Dependencies](#system-dependencies)
-    * [Init](#init)
-* [Codebase](#codebase)
-    * [Structure](#structure)
-    * [NPM Scripts](#npm-scripts)
-* [Code Contribution](#code-contribution)
-    * [Guidelines](#guidelines)
-    * [Branches](#branches)
-* [Environments](#environments)
-* [Project Context](#project-context)
-    * [Details](#details)
-    * [Team](#team)
+## Converted to custom setup
 
+Moved all dependencies to dev dependencies because we don't need extra dependencies for our library after build, but we want all this features while developing: 
 
+* React, JSX, ES6, and Flow syntax support.
+* Language extras beyond ES6 like the object spread operator.
+* A dev server that lints for common errors.
+* Import CSS and image files directly from JavaScript.
+* Autoprefixed CSS, so you don’t need `-webkit` or other prefixes.
+* A `build` script to bundle JS, CSS, and images for production.
 
-## Setup ##
+## Getting Started
 
-### System Dependencies ###
+Clone repo
 
-* [yarn](https://yarnpkg.com/en/) or [npm](https://www.npmjs.com/)
-* [node]((https://nodejs.org/en/)) (min. 6.3.0)
+````
+git clone https://github.com/DimitriMikadze/create-react-library.git
+````
 
+Install dependencies
 
-### Init ###
+`npm install` or `yarn install`
 
-* `yarn install` or `npm install`
-* `yarn start` or `npm start`
+Start development server
 
+`npm start` or `yarn start`
 
-## Codebase ##
+Runs the demo app in development mode.
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### Structure ###
-* **scripts/**: Contains the build, start & test scripts (see package.json for use)
-* **src/**: Contains the React website logic.
-* **config/**: Contains project-wide configuration properties.
+## Library files
 
-### NPM Scripts ###
+All library files are located inside `src/lib`  
 
-| Command       | Description                                 |
-| ------------- |-------------------------------------------- |
-| start         | Starts the dev server.                      |
-| build         | Builds the bundle (and cleans the previous. |
-| test          | Start the Jest test runner.                 |
+## Demo app
 
-All commands are executable by running `npm run [COMMAND-NAME]`.
+Is located inside `src/demo` directory, here you can test your library while developing
 
+## Testing
 
-## Code Contribution ##
+`npm run test` or `yarn run test`
 
-### Guidelines ###
+## Build library
 
+`npm run build` or `yarn run build`
 
-### Branches ###
+Produces production version of library under the `build` folder.
 
-We follow these naming conventions:
+## Publish library
 
-* **master**: Production-ready code.
-* **develop**: Development code.
-* **release/***: Snapshot of a release.
-* **feature/***: For developing new features.
-* **bugfix/***: For bugs that are logged during testing.
-* **hotfix/***: Only for hotfixing critical bugs from the `master`-branch.
+`npm publish`
 
+## Example library built with this starter kit
 
-
-
-## Environments ##
-
-### Development ###
-The development environment receives automatic builds when code is contributed to the `development`-branch. This environment is expected to break from time to time and thus should be used for **internal testing only**!
-
-**URL**: [https://bitbucket.org/district01/boilerplate/overview](https://bitbucket.org/district01/boilerplate/overview)
-
-### Staging ###
-The staging environment receives automatic builds when code is contributed to the `master`-branch. This environment is expected to remain stable and should be used for **client validation testing**.
-
-**URL**: [https://bitbucket.org/district01/boilerplate/overview](https://bitbucket.org/district01/boilerplate/overview)
-
-### Production ###
-The production environment is built manually from the `master`-branch. This environment has to be **stable at all times**. No unvalidated code can be deployed on this environment.
-
-**URL**: [https://bitbucket.org/district01/boilerplate/overview](https://bitbucket.org/district01/boilerplate/overview)
-
-
-
-## Project Context ##
-This project is a New-Media team effort.
-
-### Details ###
-
-* **Client**: Digipolis
-* **Start**: 12/10/2017
-* **Jira Board**: http://www.district01.be
-* **Drive Folder**: http://www.district01.be
-* **Project Sheet**: http://www.district01.be
-
-### Team ###
-List the team that has worked on this project, including the duration e.g.:
-
-* [Developer 1 - District01](developer-1@district01.be)
-    * **Function**: Lead Front-End Dev
-    * **Period**: October 2017 -> December 2017
-* [Developer 2 - District01](developer-2@district01.be)
-    * **Function**: Lead Technical Dev
-    * **Period**: October 2017 -> December 2017
+https://github.com/DimitriMikadze/react-under-construction

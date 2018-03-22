@@ -1,4 +1,4 @@
-import R, {
+import {
 	omit,
 	set,
 	lensPath,
@@ -7,6 +7,8 @@ import R, {
 	ifElse,
 	propEq,
 	append,
+	reject,
+	identity,
 } from "ramda";
 // import generateJSX from "./generateJSX";
 
@@ -25,7 +27,7 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 		ifElse(
 			propEq("id", id),
 			updateFn,
-			R.identity
+			identity
 		),
 		objs
 	)
@@ -45,9 +47,9 @@ export const addById = (id, value, objs) => (
 	), objs)
 );
 
-export const removeById = (id, objs) => R.map(
-	R.evolve({ props: { children: xs => Array.isArray(xs) ? removeById(id, xs) : xs } }),
-	R.reject(R.propEq("id", id), objs)
+export const removeById = (id, objs) => map(
+	evolve({ props: { children: xs => Array.isArray(xs) ? removeById(id, xs) : xs } }),
+	reject(propEq("id", id), objs)
 );
 
 export const getById = (id, data) => {

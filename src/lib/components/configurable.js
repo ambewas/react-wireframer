@@ -9,21 +9,24 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 
-import R, {
+import {
 	set,
 	omit,
 	propEq,
 	compose,
+	keys,
+	filter,
+	lensProp,
 } from "ramda";
 
 import {
 	safeClick,
 	getPropTypeShape,
 	getCleanProps,
-} from "./helpers";
+} from "../helpers/helpers";
 
 import { DropTarget, DragSource } from "react-dnd";
-import { dropSource, dropCollect, treeSource, dragCollect } from "./dragDropContracts";
+import { dropSource, dropCollect, treeSource, dragCollect } from "../helpers/dragDropContracts";
 
 
 
@@ -90,9 +93,9 @@ const configurable = WrappedComponent => {
 
 				// console.log("obj", obj);
 				const cleanedKeys = omit(
-					R.compose(
-						R.keys,
-						R.filter(propEq("type", "functions")),
+					compose(
+						keys,
+						filter(propEq("type", "functions")),
 					)(propTypeDefinitions),
 					propTypeDefinitions,
 				);
@@ -128,7 +131,7 @@ const configurable = WrappedComponent => {
 		handlePropInput = (e) => {
 			// text-input values update. No need to propagate this in the hierarchy.
 			const { listedProp, propInputs } = this.state;
-			const newState = set(R.lensProp(listedProp), e.target.value, propInputs);
+			const newState = set(lensProp(listedProp), e.target.value, propInputs);
 
 			this.setState({ propInputs: newState });
 		}
@@ -137,7 +140,7 @@ const configurable = WrappedComponent => {
 		handleSelectInput = (e, ctx) => {
 			// text-input values update. No need to propagate this in the hierarchy.
 			const { listedProp, propInputs } = this.state;
-			const newState = set(R.lensProp(listedProp), e.target.value, propInputs);
+			const newState = set(lensProp(listedProp), e.target.value, propInputs);
 
 			// TODO -- add support for nested values
 			this.setState({ propInputs: newState }, () => this.setPropInHierarhcy(ctx, listedProp, newState[listedProp]));

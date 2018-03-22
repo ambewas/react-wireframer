@@ -41,10 +41,11 @@ function getServedPath(appPackageJson) {
 // config after eject: we're in ./config/
 module.exports = {
   dotenv: resolveApp('.env'),
-  appBuild: resolveApp('dist'),
+  appBuild: resolveApp('build'),
+  appDemoBuild: resolveApp('demo'),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
-  appIndexJs: resolveApp('src/index.js'),
+  appIndexJs: resolveApp('src/demo/index.js'), // CRL: Updated for demo purposes
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
   yarnLockFile: resolveApp('yarn.lock'),
@@ -52,4 +53,12 @@ module.exports = {
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
+
+  // CRL: New paths for demo build
+  appDemoIndexJs: resolveApp('src/demo/index.js'),
+  appDemoSrc: resolveApp('src/demo'),
+
+  // CRL: New paths for library
+  appLibIndexJs: resolveApp('src/lib/index.js'),
+  appLibSrc: resolveApp('src/lib'),
 };

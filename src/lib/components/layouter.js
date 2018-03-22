@@ -1,21 +1,12 @@
-/**
- * TODO
- *
- * implement undo/redo
- * still a couple of bugs with moving components inside itself, and moving components inside one of its children. This must be prevented
- */
-
-
 import React, { Component } from "react";
-import configurable from "../helpers/configurable";
+import configurable from "./configurable";
 import PropTypes from "prop-types";
 import HierarchyContext from "./hierarchyContext";
 import uuid from "uuid/v1";
-import { DragDropContextProvider } from "react-dnd";
+import { DragDropContextProvider, DragSource } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
-import { DragSource } from "react-dnd";
-import { updateById, addById, removeById, getById } from "./helpers";
-import { cardSource, dragCollect } from "./dragDropContracts";
+import { updateById, addById, removeById, getById } from "../helpers/helpers";
+import { cardSource, dragCollect } from "../helpers/dragDropContracts";
 import { last, dropLast } from "ramda";
 
 const hierarchyToComponents = (children, components) => {
