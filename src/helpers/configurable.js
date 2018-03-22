@@ -10,11 +10,10 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import R, {
-	lensProp,
 	set,
 	omit,
 	propEq,
-	prop as propView,
+	compose,
 } from "ramda";
 
 import {
@@ -23,52 +22,29 @@ import {
 	getCleanProps,
 } from "./helpers";
 
-import { DropTarget } from "react-dnd";
+import { DropTarget, DragSource } from "react-dnd";
+import { dropSource, dropCollect, treeSource, dragCollect } from "./dragDropContracts";
 
 
-
-const dropSource = {
-	drop(props, monitor) {
-		const hasDroppedOnChild = monitor.didDrop();
-		// prevent deep updates
-
-		if (hasDroppedOnChild) {
-			return;
-		}
-
-		// add component to hierarchy
-		const draggedComponent = monitor.getItem();
-
-		props.ctx.addToHierarchy(draggedComponent.componentType, props.hierarchyPath);
-	},
-	canDrop(props, monitor) {
-		return true;
-	},
-};
-
-
-function dropCollect(connect, monitor) {
-	return {
-		connectDropTarget: connect.dropTarget(),
-		isOverCurrent: monitor.isOver({ shallow: true }),
-	};
-}
 
 const configurable = WrappedComponent => {
 	class ConfigurableComponent extends Component {
-		static propTypes = {
-			children: PropTypes.any,
-			hierarchyPath: PropTypes.string,
-			isOverCurrent: PropTypes.bool,
-			connectDropTarget: PropTypes.func,
-			ctx: PropTypes.object,
-		}
 
 		constructor(props) {
 			super(props);
 
 			const wrappedComponentProps = this.getWrappedComponentProps();
 
+			console.log("props.deepPropTypes", props.deepPropTypes);
+
+			this.propTypes = {
+				children: PropTypes.any,
+				hierarchyPath: PropTypes.string,
+				isOverCurrent: PropTypes.bool,
+				connectDropTarget: PropTypes.func,
+				connectDragSource: PropTypes.func,
+				ctx: PropTypes.object,
+			};
 			this.state = {
 				props: { ...wrappedComponentProps, ...this.props },
 				listedProp: undefined,
@@ -95,21 +71,35 @@ const configurable = WrappedComponent => {
 		}
 
 		getWrappedComponentProps = () => {
+			const extraPropTypes = PropTypes.getPropTypeDefinitions(this.props.deepPropTypes);
+			const extraProps = Object.keys(extraPropTypes).reduce((acc, key) => {
+				console.log("extraPropTypes[key]", extraPropTypes[key]);
+				const keyValue = extraPropTypes[key].type === "shape" ? getPropTypeShape(extraPropTypes[key].shapeTypes) : undefined;
+
+				return {
+					...acc,
+					[key]: keyValue,
+				};
+			}, {});
+			let props;
+
+			console.log("extraProps", extraProps);
 			if (WrappedComponent.propTypes) {
 				// filter out all function props; We can't do anything with them anyway.
 				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
+				// console.log("obj", obj);
 				const cleanedKeys = omit(
 					R.compose(
 						R.keys,
-						R.filter(propEq("type", "function")),
+						R.filter(propEq("type", "functions")),
 					)(propTypeDefinitions),
 					propTypeDefinitions,
 				);
 
 				// build a props object based on these keys and shapeTypes.
 				// TODO can't init these with empty string due to propTypes (controlled/uncontrolled warning is still here). Perhaps provide a sensible default ourselves...?
-				const props = Object.keys(cleanedKeys).reduce((acc, key) => {
+				props = Object.keys(cleanedKeys).reduce((acc, key) => {
 					const keyValue = propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
 					return {
@@ -119,8 +109,8 @@ const configurable = WrappedComponent => {
 					};
 				}, {});
 
-				return props;
 			}
+			return { ...props, ...extraProps };
 		}
 
 		setPropInHierarhcy = (ctx, prop, value) => {
@@ -140,7 +130,6 @@ const configurable = WrappedComponent => {
 			const { listedProp, propInputs } = this.state;
 			const newState = set(R.lensProp(listedProp), e.target.value, propInputs);
 
-			console.log("e.target.value", e.target.value);
 			this.setState({ propInputs: newState });
 		}
 
@@ -160,14 +149,23 @@ const configurable = WrappedComponent => {
 			const inputValue = propInputs[listedProp];
 
 			// TODO -- show different inputs for different props. For example, we want a drop down menu for oneOf proptypes
-			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
+			// const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
+			console.log("this.props.deepPropTypes", this.props.deepPropTypes);
+			const extraPropTypes = PropTypes.getPropTypeDefinitions(this.props.deepPropTypes);
+			const mergedDefinitions = {
+				// ...propTypeDefinitions,
+				...extraPropTypes,
+			};
 
-			if (propTypeDefinitions[listedProp].type === "enum") {
+			console.log("mergedDefinitions", mergedDefinitions);
+			if (mergedDefinitions[listedProp] && mergedDefinitions[listedProp].type === "enum") {
+				const options = mergedDefinitions[listedProp].expectedValues;
+				const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
+
+				console.log("options", options);
 				return (
 					<select name={listedProp} value={inputValue} onChange={(e) => this.handleSelectInput(e, ctx)}>
-						<option value="red">red</option>
-						<option value="green">green</option>
-						<option value="blue">blue</option>
+						{optionsArray}
 					</select>
 				);
 			}
@@ -238,7 +236,7 @@ const configurable = WrappedComponent => {
 
 		render() {
 			const { children, ...restProps } = this.state.props;
-			const { isOverCurrent, connectDropTarget, ctx } = this.props;
+			const { isOverCurrent, connectDropTarget, ctx, connectDragSource } = this.props;
 
 			const style = isOverCurrent ? { borderLeft: "4px solid green" } : {};
 
@@ -250,17 +248,22 @@ const configurable = WrappedComponent => {
 					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher(ctx)}</div>
 					{
 						connectDropTarget(
-							<div style={style}>
-								<WrappedComponent {...restProps}>
-									{children || this.props.children}
-								</WrappedComponent>
-							</div>
+							connectDragSource(
+								<div style={style}>
+									<WrappedComponent {...restProps}>
+										{children || this.props.children}
+									</WrappedComponent>
+								</div>
+							)
 						)}
 				</div>
 			);
 		}
 	}
-	return DropTarget("card", dropSource, dropCollect)(ConfigurableComponent);
+	return compose(
+		DragSource("card", treeSource, dragCollect),
+		DropTarget("card", dropSource, dropCollect)
+	)(ConfigurableComponent);
 };
 
 export default configurable;

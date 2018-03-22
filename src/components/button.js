@@ -2,16 +2,16 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const Button = ({ children = "button", background = "pink", borderColor = "white", getBackground, light = false }) => (
-	<div style={{ padding: "10px 30px", background: background, width: 100, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
+	<div style={{ padding: "10px 30px", background: background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
 		{getBackground && getBackground()}
 	</div>
 );
 
 const myHoc = (WrappedComponent) => {
-	return class Enhancer extends React.Component { // eslint-disable-line
+	return class ButtonEnhancer extends React.Component { // eslint-disable-line
 		// pass on proptypes for compatibility with configurable.
-		static propTypes = WrappedComponent.propTypes;
+		// static propTypes = WrappedComponent.propTypes;
 		render() {
 			const extraProps = {
 				language: "get it from somewhere",

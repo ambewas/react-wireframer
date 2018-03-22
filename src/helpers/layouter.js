@@ -2,6 +2,7 @@
  * TODO
  *
  * implement undo/redo
+ * still a couple of bugs with moving components inside itself, and moving components inside one of its children. This must be prevented
  */
 
 
@@ -13,8 +14,9 @@ import uuid from "uuid/v1";
 import { DragDropContextProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { DragSource } from "react-dnd";
-import R from "ramda";
-import { updateById, addById, removeById } from "./helpers";
+import { updateById, addById, removeById, getById } from "./helpers";
+import { cardSource, dragCollect } from "./dragDropContracts";
+import { last, dropLast } from "ramda";
 
 const hierarchyToComponents = (children, components) => {
 	if (!Array.isArray(children)) {
@@ -29,37 +31,30 @@ const hierarchyToComponents = (children, components) => {
 		const component = components[element.type];
 		const Configurable = configurable(component || element.type);
 
+		const compClass = component.prototype.render && new component({});
+		const compClassPropTypes = compClass && compClass.render().type.propTypes;
+
+
 		return (
-			<HierarchyContext.Consumer key={i}>
+			<HierarchyContext.Consumer
+				key={element.props.hierarchyPath + i} // eslint-disable-line
+			>
 				{ctx => (
-					<Configurable {...element.props} ctx={ctx}>{element.props.children && element.props.children.length > 0 ? hierarchyToComponents(element.props.children, components) : ""}</Configurable>
+					<Configurable
+						{...element.props}
+						componentType={element.type}
+						ctx={ctx}
+						deepPropTypes={compClassPropTypes}
+					>
+						{element.props.children && element.props.children.length > 0 ? hierarchyToComponents(element.props.children, components) : element.type}
+					</Configurable>
 				)}
 			</HierarchyContext.Consumer>
 		);
 	});
-
 };
 
-/**
- * Specifies the props to inject into your component.
- */
-function collect(connect, monitor) {
-	return {
-		connectDragSource: connect.dragSource(),
-		isDragging: monitor.isDragging(),
-	};
-}
 
-/**
- * Implements the drag source contract.
- */
-const cardSource = {
-	beginDrag(props) {
-		return {
-			componentType: props.componentType,
-		};
-	},
-};
 
 class Layouter extends Component {
 	static propTypes = {
@@ -67,6 +62,7 @@ class Layouter extends Component {
 	}
 	constructor(props) {
 		super(props);
+
 		this.state = {
 			hierarchy: [{
 				id: "root",
@@ -90,6 +86,16 @@ class Layouter extends Component {
 											light: true,
 										},
 									},
+									{
+										id: "button2",
+										type: "Button",
+										props: {
+											hierarchyPath: "button2",
+											background: "red",
+											children: "button 2 drag",
+											light: true,
+										},
+									},
 								],
 							},
 						},
@@ -97,26 +103,92 @@ class Layouter extends Component {
 				},
 			}],
 		};
+
+		this.history = [this.state.hierarchy];
 	}
 
-	addToHierarchy = (comp, path) => {
+	componentDidMount() {
+		window.addEventListener("keydown", this.handleKeyDown);
+		window.addEventListener("keyup", this.handleKeyUp);
+	}
+
+	componentWillUnMount() {
+		window.removeEventListener("keydown", this.handleKeyDown);
+		window.removeEventListener("keyup", this.handleKeyUp);
+	}
+
+	handleKeyUp = (e) => {
+		if (e.keyCode === 91) {
+			// cmd is no longer down
+			this.cmdDown = false;
+		}
+	}
+
+	handleKeyDown = (e) => {
+		if (e.keyCode === 91) {
+			// cmd is held down
+			this.cmdDown = true;
+		}
+
+		if (this.cmdDown && e.keyCode === 90) {
+			this.history = dropLast(1, this.history);
+			this.setState({
+				hierarchy: last(this.history),
+			});
+		}
+	}
+
+	addToHierarchy = (componentProps, path) => {
 		const { hierarchy } = this.state;
 
 		const id = uuid();
+
 		const compObject = {
 			id: id,
-			type: comp,
+			type: componentProps.componentType,
 			// no need to complete props, we'll render all components with default props. This IS the object that will be edited with prop updates from <configurable>, though.
 			props: {
 				hierarchyPath: id,
-				children: comp,
+				children: componentProps.componentType,
 			},
 		};
 
 		const newArray = addById(path, compObject, hierarchy);
 
-		this.setState({
+		this.setStateWithHistory({
 			hierarchy: newArray,
+		});
+	}
+
+	setStateWithHistory = (object) => {
+		this.setState(object, () => {
+			this.history.push(object.hierarchy);
+		});
+	}
+
+	moveInHierarchy = (pathFrom, pathTo) => {
+		const { hierarchy } = this.state;
+		// get the piece of the component tree based on pathFrom
+
+		const theComponent = getById(pathFrom, hierarchy);
+
+		// don't move a component into it's own children
+		const theDropTarget = getById(pathTo, [theComponent]);
+
+		if (theDropTarget) {
+			console.warn("you cannot move a component inside children of itself!"); // eslint-disable-line
+			return;
+		}
+
+		// delete the component in the pathFrom
+		const stateWithoutTheComponent = removeById(pathFrom, hierarchy);
+
+		// add the component in the pathTo
+		console.log("theComponent", theComponent);
+		const newState = addById(pathTo, theComponent, stateWithoutTheComponent);
+
+		this.setStateWithHistory({
+			hierarchy: newState,
 		});
 	}
 
@@ -124,7 +196,7 @@ class Layouter extends Component {
 		const stateArray = this.state.hierarchy;
 		const newArray = updateById(path, prop, value, stateArray);
 
-		this.setState({
+		this.setStateWithHistory({
 			hierarchy: newArray,
 		});
 	}
@@ -134,7 +206,7 @@ class Layouter extends Component {
 
 		const newArray = removeById(path, stateArray);
 
-		this.setState({
+		this.setStateWithHistory({
 			hierarchy: newArray,
 		});
 	}
@@ -147,10 +219,10 @@ class Layouter extends Component {
 				{Object.keys(components).map((comp, i) => {
 					const ActualComponent = components[comp];
 					const Interim = (props) => {
-						return props.connectDragSource(<div><ActualComponent /></div>);
+						return props.connectDragSource(<div><ActualComponent>somechild</ActualComponent></div>);
 					};
 
-					const Draggable = DragSource("card", cardSource, collect)(Interim);
+					const Draggable = DragSource("card", cardSource, dragCollect)(Interim);
 
 					return <div key={comp + i}><Draggable componentType={comp} /></div>; // eslint-disable-line
 				})}
@@ -159,13 +231,14 @@ class Layouter extends Component {
 	}
 
 	render() {
+		console.log("this.history", this.history);
 		const components = hierarchyToComponents(this.state.hierarchy[0].props.children, this.props.components);
 
-		console.log("components", components);
 		const contextObject = {
 			updatePropInHierarchy: this.updatePropInHierarchy,
 			addToHierarchy: this.addToHierarchy,
 			removeFromHierarchy: this.removeFromHierarchy,
+			moveInHierarchy: this.moveInHierarchy,
 		};
 
 		console.log("this.state.hierarchy", this.state.hierarchy);

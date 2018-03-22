@@ -31,6 +31,7 @@ module.exports = {
 		"react/jsx-uses-vars": 1,
 		"react/jsx-wrap-multilines": 1,
 		"react/jsx-first-prop-new-line": [1, "multiline"],
-		"react/jsx-indent": [2, "tab"]
+		"react/jsx-indent": [2, "tab"],
+		"no-console": ["error", { allow: ["log"] }]
 	}
 }
