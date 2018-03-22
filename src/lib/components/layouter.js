@@ -54,8 +54,8 @@ const createLayouter = PropTypes => {
 					props: {
 						hierarchyPath: "root",
 						style: {
-							background: 'grey',
-							padding: '20px'
+							background: "grey",
+							padding: "20px",
 						},
 						children: [],
 					},
@@ -153,6 +153,9 @@ const createLayouter = PropTypes => {
 			const stateArray = this.state.hierarchy;
 			const newArray = updateById(path, prop, value, stateArray);
 
+			console.log("prop, path, value", prop, path, value);
+			console.log("stateArray", stateArray);
+			console.log("newArray", newArray);
 			this.setStateWithHistory({
 				hierarchy: newArray,
 			});
@@ -172,11 +175,17 @@ const createLayouter = PropTypes => {
 			const { components } = this.props;
 
 			return (
-				<div style={{ position: "fixed", bottom: 0, background: "grey", right: 0, left: 0, padding: 20, zIndex: 100000000000 }}>
+				<div style={{ position: "fixed", bottom: 0, background: "grey", right: 0, left: 0, padding: 20, zIndex: 100000000000, maxHeight: 300, overflow: "scroll" }}>
 					{Object.keys(components).map((comp, i) => {
 						const ActualComponent = components[comp];
 						const Interim = (props) => {
-							return props.connectDragSource(<div><ActualComponent>somechild</ActualComponent></div>);
+							return props.connectDragSource(
+								<div style={{ padding: 20, border: "3px solid red" }}>
+									<p>component: {comp}</p>
+									<p>--preview--</p>
+									<ActualComponent>{"some child"}</ActualComponent>
+								</div>
+							);
 						};
 
 						const Draggable = DragSource("card", cardSource, dragCollect)(Interim);
@@ -206,9 +215,8 @@ const createLayouter = PropTypes => {
 				</DragDropContextProvider>
 			);
 		}
-	}
-}
-
+	};
+};
 
 
 
