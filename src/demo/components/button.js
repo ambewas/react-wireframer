@@ -11,7 +11,7 @@ const Button = ({ children = "button", background = "pink", borderColor = "white
 const myHoc = (WrappedComponent) => {
 	return class ButtonEnhancer extends React.Component { // eslint-disable-line
 		// pass on proptypes for compatibility with configurable.
-		// static propTypes = WrappedComponent.propTypes;
+		static propTypes = WrappedComponent.propTypes;
 		render() {
 			const extraProps = {
 				language: "get it from somewhere",
@@ -28,6 +28,10 @@ Button.propTypes = {
 	light: PropTypes.bool,
 	getBackground: PropTypes.func,
 	borderColor: PropTypes.string,
+	whuu: PropTypes.oneOfType([
+		PropTypes.number,
+		PropTypes.string,
+	]),
 	myShape: PropTypes.shape({ // eslint-disable-line
 		foo: PropTypes.string,
 		bar: PropTypes.bool,

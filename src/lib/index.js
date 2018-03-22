@@ -1,7 +1,7 @@
 import configurable from './components/configurable';
-import Layouter from './components/Layouter';
+import createLayouter from './components/Layouter';
 
 export {
   configurable,
-  Layouter
+  createLayouter
 };

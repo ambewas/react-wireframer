@@ -7,7 +7,6 @@
  */
 
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 
 import {
 	set,
@@ -29,25 +28,21 @@ import { DropTarget, DragSource } from "react-dnd";
 import { dropSource, dropCollect, treeSource, dragCollect } from "../helpers/dragDropContracts";
 
 
-
-const configurable = WrappedComponent => {
+const configurable = (WrappedComponent, PropTypes) => {
 	class ConfigurableComponent extends Component {
-
+		static propTypes = {
+			children: PropTypes.any,
+			hierarchyPath: PropTypes.string,
+			isOverCurrent: PropTypes.bool,
+			connectDropTarget: PropTypes.func,
+			connectDragSource: PropTypes.func,
+			ctx: PropTypes.object,
+		};
 		constructor(props) {
 			super(props);
 
 			const wrappedComponentProps = this.getWrappedComponentProps();
 
-			console.log("props.deepPropTypes", props.deepPropTypes);
-
-			this.propTypes = {
-				children: PropTypes.any,
-				hierarchyPath: PropTypes.string,
-				isOverCurrent: PropTypes.bool,
-				connectDropTarget: PropTypes.func,
-				connectDragSource: PropTypes.func,
-				ctx: PropTypes.object,
-			};
 			this.state = {
 				props: { ...wrappedComponentProps, ...this.props },
 				listedProp: undefined,
@@ -74,10 +69,10 @@ const configurable = WrappedComponent => {
 		}
 
 		getWrappedComponentProps = () => {
-			const extraPropTypes = PropTypes.getPropTypeDefinitions(this.props.deepPropTypes);
+			const extraPropTypes = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
+
 			const extraProps = Object.keys(extraPropTypes).reduce((acc, key) => {
-				console.log("extraPropTypes[key]", extraPropTypes[key]);
-				const keyValue = extraPropTypes[key].type === "shape" ? getPropTypeShape(extraPropTypes[key].shapeTypes) : undefined;
+				const keyValue = extraPropTypes[key] && extraPropTypes[key].type === "shape" ? getPropTypeShape(extraPropTypes[key].shapeTypes) : undefined;
 
 				return {
 					...acc,
@@ -86,12 +81,10 @@ const configurable = WrappedComponent => {
 			}, {});
 			let props;
 
-			console.log("extraProps", extraProps);
 			if (WrappedComponent.propTypes) {
 				// filter out all function props; We can't do anything with them anyway.
 				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-
-				// console.log("obj", obj);
+				console.log('propTypeDefinitions',propTypeDefinitions);
 				const cleanedKeys = omit(
 					compose(
 						keys,
@@ -103,7 +96,7 @@ const configurable = WrappedComponent => {
 				// build a props object based on these keys and shapeTypes.
 				// TODO can't init these with empty string due to propTypes (controlled/uncontrolled warning is still here). Perhaps provide a sensible default ourselves...?
 				props = Object.keys(cleanedKeys).reduce((acc, key) => {
-					const keyValue = propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
+					const keyValue = propTypeDefinitions[key] && propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
 					return {
 						...acc,
@@ -152,20 +145,12 @@ const configurable = WrappedComponent => {
 			const inputValue = propInputs[listedProp];
 
 			// TODO -- show different inputs for different props. For example, we want a drop down menu for oneOf proptypes
-			// const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-			console.log("this.props.deepPropTypes", this.props.deepPropTypes);
-			const extraPropTypes = PropTypes.getPropTypeDefinitions(this.props.deepPropTypes);
-			const mergedDefinitions = {
-				// ...propTypeDefinitions,
-				...extraPropTypes,
-			};
+			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-			console.log("mergedDefinitions", mergedDefinitions);
-			if (mergedDefinitions[listedProp] && mergedDefinitions[listedProp].type === "enum") {
-				const options = mergedDefinitions[listedProp].expectedValues;
+			if (propTypeDefinitions[listedProp] && propTypeDefinitions[listedProp].type === "enum") {
+				const options = propTypeDefinitions[listedProp].expectedValues;
 				const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
 
-				console.log("options", options);
 				return (
 					<select name={listedProp} value={inputValue} onChange={(e) => this.handleSelectInput(e, ctx)}>
 						{optionsArray}
