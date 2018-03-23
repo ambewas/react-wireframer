@@ -16,6 +16,8 @@ import {
 	keys,
 	filter,
 	lensProp,
+	view,
+	lensPath,
 } from "ramda";
 
 import {
@@ -112,7 +114,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 			return { ...props, ...extraProps };
 		}
 
-		setPropInHierarhcy = (prop, value) => {
+		setPropInHierarchy = (prop, value) => {
 			const { ctx } = this.props;
 			// update the specific prop in the hierarhcy from the context
 			// Layouter will re-render, and updates will propagate.
@@ -132,26 +134,29 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const { propInputs } = this.state;
 
 			const value = inputType === "checkbox" ? e.target.checked : e.target.value;
-			const newState = set(lensProp(inputPath), value, propInputs);
+			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
 
 			this.setState({ propInputs: newState }, () => {
 				if (inputType === "checkbox") {
-					this.setPropInHierarhcy(inputPath, value);
+					this.setPropInHierarchy(inputPath, value);
 				}
 			});
 		}
 
-		handlePropInputBlur = () => {
+		handlePropInputBlur = (inputPath, inputValue) => {
 			this.isEnteringValue = false;
+			this.setPropInHierarchy(inputPath, inputValue);
 		}
 		handleSelectInput = (e, inputPath) => {
 			e.stopPropagation();
 
 			const { propInputs } = this.state;
-			const newState = set(lensProp(inputPath), e.target.value, propInputs);
+			const value = e.target.value;
+
+			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
 
 			// TODO -- add support for nested values
-			this.setState({ propInputs: newState }, () => this.setPropInHierarhcy(inputPath, newState[inputPath]));
+			this.setState({ propInputs: newState }, () => this.setPropInHierarchy(inputPath, value));
 		}
 
 		renderSelectBox = (propTypeDefinition, inputPath) => {
@@ -170,23 +175,21 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 		renderInputBox = (inputPath, inputType) => {
 			const { propInputs } = this.state;
-			const inputValue = propInputs[inputPath];
+			const inputValue = view(lensPath(inputPath.split(".")), propInputs);
 
+			console.log("inputValue", inputValue);
 			return (
 				<div>
 					<input
 						onClick={e => e.stopPropagation()}
 						type={inputType}
 						onChange={e => this.handlePropInput(e, inputPath, inputType)}
-						onBlur={this.handlePropInputBlur}
+						onBlur={() => this.handlePropInputBlur(inputPath, inputValue)}
 						value={inputValue}
-						checked={inputType === "checkbox" ? inputValue : undefined}
+						// check for null is to avoid going from an uncontrolled to a controlled input
+						checked={inputType === "checkbox" ? inputValue == null ? "" : inputValue : false} // eslint-disable-line
+						name={inputPath}
 					/>
-					<span
-						onClick={safeClick(() => this.setPropInHierarhcy(inputPath, inputValue))}
-					>
-						{`SET ${  inputPath}`}
-					</span>
 				</div>
 			);
 		}
@@ -194,21 +197,19 @@ const configurable = (WrappedComponent, PropTypes) => {
 		renderShape = (shape, deeperKey) => {
 			const shapeKeys = Object.keys(shape);
 			const inputs = shapeKeys.map(shapeKey => {
-
-
 				// build key path to support updates of deeper keys
 				const keyPath = deeperKey ? `${deeperKey}.${shapeKey}` : shapeKey;
 
 				if (shape[shapeKey].shapeTypes) {
 					return (
-						<div key={keyPath}>
-							<div style={{ borderBottom: "2px solid blue" }}>{shapeKey}</div>
-							<div style={{ marginLeft: 20 }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
+						<div key={keyPath} style={{ display: "flex", paddingBottom: 12 }}>
+							<div>{shapeKey}</div>
+							<div style={{ marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
 						</div>
 					);
 				}
 
-				return <div key={shapeKey}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
+				return <div key={shapeKey} style={{ display: "flex", paddingBottom: 12  }}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
 			});
 
 			return inputs;
@@ -241,7 +242,14 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const propTypeKeys = Object.keys(propTypeDefinitions);
 
 			return propTypeKeys.map(propTypeKey => {
-				return <div key={propTypeKey}>{propTypeKey}{this.getInputType(propTypeDefinitions[propTypeKey], propTypeKey)}</div>;
+				const style = propTypeDefinitions[propTypeKey].type === "shape" ? { marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" } : {};
+
+				return (
+					<div key={propTypeKey} style={{ display: "flex", paddingBottom: 12  }}>
+						{propTypeKey}
+						<div style={style}>{this.getInputType(propTypeDefinitions[propTypeKey], propTypeKey)}</div>
+					</div>
+				);
 			});
 		}
 

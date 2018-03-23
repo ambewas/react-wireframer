@@ -26,7 +26,6 @@ Button.propTypes = {
 	children: PropTypes.node,
 	light: PropTypes.bool,
 	getBackground: PropTypes.func,
-	borderColor: PropTypes.string,
 	whuu: PropTypes.oneOfType([ // eslint-disable-line
 		PropTypes.number,
 		PropTypes.string,
@@ -43,6 +42,7 @@ Button.propTypes = {
 			}),
 		}),
 	}),
+	borderColor: PropTypes.string,
 };
 
 export default myHoc(Button);
