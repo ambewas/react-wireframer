@@ -66,7 +66,6 @@ class PropSwitcher extends Component {
 	}
 
 	renderInputBox = (inputPath, inputType) => {
-		console.log("inputPath", inputPath);
 		const { propInputs } = this.state;
 		const { hierarchyPath, hierarchy } = this.props;
 
@@ -122,14 +121,14 @@ class PropSwitcher extends Component {
 			<option key={option.type} value={option.type}>{option.type}</option>
 		));
 
-		const selectedType = expectedTypes.find(item => item.type === typeSelectorValue.value) || expectedTypes[0];
+		const selectedType = expectedTypes.find(item => item.type === typeSelectorValue[propTypePath]) || expectedTypes[0];
 
 		return (
 			<div>
 				<select
 					name={propTypePath}
 					value={typeSelectorValue.value}
-					onChange={(e) => this.setState({ typeSelectorValue: { path: propTypePath, value: e.target.value } })}
+					onChange={(e) => this.setState({ typeSelectorValue: { [propTypePath]: e.target.value } })}
 				>
 					{options}
 				</select>
@@ -149,8 +148,6 @@ class PropSwitcher extends Component {
 		}
 
 		if (propTypeDefinition.type === "oneOfType") {
-			console.log("oneOfType");
-			console.log("propTypeDefinition", propTypeDefinition);
 			return this.renderOneOfType(propTypeDefinition.expectedTypes, propTypePath);
 		}
 

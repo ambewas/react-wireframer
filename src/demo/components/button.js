@@ -32,7 +32,10 @@ Button.propTypes = {
 		PropTypes.string,
 	]),
 	myShape: PropTypes.shape({ // eslint-disable-line
-		background: PropTypes.oneOf(["red", "green", "orange"]),
+		background: PropTypes.oneOfType([
+			PropTypes.oneOf(["red", "green", "orange"]),
+			PropTypes.string,
+		]),
 		foo: PropTypes.string,
 		bar: PropTypes.bool,
 		baz: PropTypes.oneOf(["shoe", "store"]),
