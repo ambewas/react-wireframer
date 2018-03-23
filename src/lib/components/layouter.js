@@ -340,9 +340,9 @@ const createLayouter = PropTypes => {
 		}
 
 		renderPropSwitcher = () => {
-			const { propTypeDefinitions } = this.state;
+			const { propTypeDefinitions, currentHierarchyPath } = this.state;
 
-			if (propTypeDefinitions) {
+			if (propTypeDefinitions && currentHierarchyPath) {
 				const propList = this.renderPropList(propTypeDefinitions);
 
 				return (
@@ -361,6 +361,13 @@ const createLayouter = PropTypes => {
 							boxShadow: "0px 6px 14px black",
 						}}
 					>
+						<div
+							style={{ position: "absolute", right: 0, top: 0, border: "1px solid red", padding: 12, margin: 20, cursor: "pointer" }}
+							onClick={() => this.setState({ currentHierarchyPath: undefined })}
+						>
+							X
+						</div>
+						active component hash: {this.state.currentHierarchyPath}
 						{propList}
 					</div>
 				);
