@@ -10,19 +10,14 @@
 import React, { Component } from "react";
 
 import {
-	set,
 	omit,
 	propEq,
 	compose,
 	keys,
 	filter,
-	lensProp,
-	view,
-	lensPath,
 } from "ramda";
 
 import {
-	safeClick,
 	getPropTypeShape,
 	getCleanProps,
 } from "../helpers/helpers";
