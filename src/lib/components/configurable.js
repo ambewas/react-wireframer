@@ -66,7 +66,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 		handleKeyUp = (e) => {
 			// remove specific element from hierarchy if we're not currently filling out anything
-			if (e.keyCode === 8 && !this.state.listedProp) {
+			if (e.keyCode === 8 && !this.isEnteringValue) {
 				this.props.ctx.removeFromHierarchy(this.props.hierarchyPath);
 			}
 		}
@@ -126,15 +126,24 @@ const configurable = (WrappedComponent, PropTypes) => {
 			});
 		}
 
-		handlePropInput = (e, inputPath) => {
+		handlePropInput = (e, inputPath, inputType) => {
+			this.isEnteringValue = true;
 			// text-input values update. No need to propagate this in the hierarchy.
 			const { propInputs } = this.state;
-			const newState = set(lensProp(inputPath), e.target.value, propInputs);
 
-			this.setState({ propInputs: newState });
+			const value = inputType === "checkbox" ? e.target.checked : e.target.value;
+			const newState = set(lensProp(inputPath), value, propInputs);
+
+			this.setState({ propInputs: newState }, () => {
+				if (inputType === "checkbox") {
+					this.setPropInHierarhcy(inputPath, value);
+				}
+			});
 		}
 
-
+		handlePropInputBlur = () => {
+			this.isEnteringValue = false;
+		}
 		handleSelectInput = (e, inputPath) => {
 			e.stopPropagation();
 
@@ -159,7 +168,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 			);
 		}
 
-		renderInputBox = (inputPath) => {
+		renderInputBox = (inputPath, inputType) => {
 			const { propInputs } = this.state;
 			const inputValue = propInputs[inputPath];
 
@@ -167,9 +176,11 @@ const configurable = (WrappedComponent, PropTypes) => {
 				<div>
 					<input
 						onClick={e => e.stopPropagation()}
-						type="text"
-						onChange={e => this.handlePropInput(e, inputPath)}
+						type={inputType}
+						onChange={e => this.handlePropInput(e, inputPath, inputType)}
+						onBlur={this.handlePropInputBlur}
 						value={inputValue}
+						checked={inputType === "checkbox" ? inputValue : undefined}
 					/>
 					<span
 						onClick={safeClick(() => this.setPropInHierarhcy(inputPath, inputValue))}
@@ -190,7 +201,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 				if (shape[shapeKey].shapeTypes) {
 					return (
-						<div>
+						<div key={keyPath}>
 							<div style={{ borderBottom: "2px solid blue" }}>{shapeKey}</div>
 							<div style={{ marginLeft: 20 }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
 						</div>
@@ -204,17 +215,25 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		getInputType = (propTypeDefinition, propTypeKey) => {
-			if (propTypeDefinition && propTypeDefinition.type === "enum") {
+			if (propTypeDefinition.type === "enum") {
 				// TODO -- must also add value for initialising correctly.
 				return this.renderSelectBox(propTypeDefinition, propTypeKey);
 			}
 
-			if (propTypeDefinition && propTypeDefinition.type === "shape") {
+			if (propTypeDefinition.type === "shape") {
 				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
 				return this.renderShape(propTypeDefinition.shapeTypes, propTypeKey);
 			}
 
-			return this.renderInputBox(propTypeKey);
+			if (propTypeDefinition.type === "number") {
+				return this.renderInputBox(propTypeKey, "number");
+			}
+
+			if (propTypeDefinition.type === "boolean") {
+				return this.renderInputBox(propTypeKey, "checkbox");
+			}
+
+			return this.renderInputBox(propTypeKey, "text");
 		}
 
 
