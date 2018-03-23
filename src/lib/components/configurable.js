@@ -56,24 +56,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			};
 		}
 
-		componentWillUnmount() {
-			// remove any event listeners if there were any added
-			window.removeEventListener("keyup", this.handleKeyUp);
-		}
-
-		componentDidUpdate() {
-			if (this.state.propSwitcher) {
-				window.addEventListener("keyup", this.handleKeyUp);
-			}
-		}
-
-		handleKeyUp = (e) => {
-			// remove specific element from hierarchy if we're not currently filling out anything
-			if (e.keyCode === 8 && !this.isEnteringValue) {
-				this.props.ctx.removeFromHierarchy(this.props.hierarchyPath);
-			}
-		}
-
 		getWrappedComponentProps = () => {
 			const extraPropTypes = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
@@ -100,7 +82,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 				);
 
 				// build a props object based on these keys and shapeTypes.
-				// TODO can't init these with empty string due to propTypes (controlled/uncontrolled warning is still here). Perhaps provide a sensible default ourselves...?
 				props = Object.keys(cleanedKeys).reduce((acc, key) => {
 					const keyValue = propTypeDefinitions[key] && propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
@@ -120,7 +101,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const { props } = this.state;
 			const { ctx } = this.props;
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-			// render a list of all props that can be edited. We'll omit any props added by react dnd etc.
 
 			if (props) {
 				// pass the definitions and path to Layouter.
@@ -132,7 +112,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const { children, ...restProps } = this.state.props;
 			const { isOverCurrent, connectDropTarget, connectDragSource, ctx } = this.props;
 
-			console.log("ctx", ctx);
 			const isActive = ctx && (this.props.hierarchyPath === ctx.activeComponentHierarchyPath);
 			const style = isOverCurrent || isActive ? { borderLeft: "4px solid green" } : {};
 

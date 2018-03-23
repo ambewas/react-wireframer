@@ -66,6 +66,7 @@ const createLayouter = PropTypes => {
 			this.history = [this.state.hierarchy];
 		}
 
+
 		componentDidMount() {
 			window.addEventListener("keydown", this.handleKeyDown);
 			window.addEventListener("keyup", this.handleKeyUp);
@@ -89,12 +90,17 @@ const createLayouter = PropTypes => {
 				this.cmdDown = true;
 			}
 
+			// undo action. Basically render again with the last item in the history
 			if (this.cmdDown && e.keyCode === 90) {
-				// undo action. Basically render again with the last item in the history
 				this.history = dropLast(1, this.history);
 				this.setState({
 					hierarchy: last(this.history),
 				});
+			}
+
+			// remove component action
+			if (e.keyCode === 8 && !this.isEnteringValue) {
+				this.removeFromHierarchy(this.state.currentHierarchyPath);
 			}
 		}
 
@@ -166,6 +172,8 @@ const createLayouter = PropTypes => {
 
 			this.setStateWithHistory({
 				hierarchy: newArray,
+				// component has been removed. Set current path to undefined
+				currentHierarchyPath: undefined,
 			});
 		}
 
