@@ -13,6 +13,7 @@ class PropSwitcher extends Component {
 
 		this.state = {
 			propInputs: props.propInputs,
+			typeSelectorValue: {},
 		};
 	}
 
@@ -65,6 +66,7 @@ class PropSwitcher extends Component {
 	}
 
 	renderInputBox = (inputPath, inputType) => {
+		console.log("inputPath", inputPath);
 		const { propInputs } = this.state;
 		const { hierarchyPath, hierarchy } = this.props;
 
@@ -113,6 +115,29 @@ class PropSwitcher extends Component {
 		return inputs;
 	}
 
+	renderOneOfType = (expectedTypes, propTypePath) => {
+		const { typeSelectorValue } = this.state;
+
+		const options = expectedTypes.filter(o => o).map(option => (
+			<option key={option.type} value={option.type}>{option.type}</option>
+		));
+
+		const selectedType = expectedTypes.find(item => item.type === typeSelectorValue.value) || expectedTypes[0];
+
+		return (
+			<div>
+				<select
+					name={propTypePath}
+					value={typeSelectorValue.value}
+					onChange={(e) => this.setState({ typeSelectorValue: { path: propTypePath, value: e.target.value } })}
+				>
+					{options}
+				</select>
+				{this.getInputType(selectedType, propTypePath)}
+			</div>
+		);
+	}
+
 	getInputType = (propTypeDefinition, propTypePath) => {
 		if (propTypeDefinition.type === "enum") {
 			// TODO -- must also add value for initialising correctly.
@@ -121,6 +146,12 @@ class PropSwitcher extends Component {
 
 		if (propTypeDefinition.type === "shape") {
 			return this.renderShape(propTypeDefinition.shapeTypes, propTypePath);
+		}
+
+		if (propTypeDefinition.type === "oneOfType") {
+			console.log("oneOfType");
+			console.log("propTypeDefinition", propTypeDefinition);
+			return this.renderOneOfType(propTypeDefinition.expectedTypes, propTypePath);
 		}
 
 		if (propTypeDefinition.type === "number") {

@@ -1,9 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Button = ({ children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
+const Button = ({ aantal, children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
 	<div style={{ padding: "10px 30px", background: myShape.background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
+		{aantal}
 		{getBackground && getBackground()}
 	</div>
 );
@@ -26,7 +27,7 @@ Button.propTypes = {
 	children: PropTypes.node,
 	light: PropTypes.bool,
 	getBackground: PropTypes.func,
-	whuu: PropTypes.oneOfType([ // eslint-disable-line
+	aantal: PropTypes.oneOfType([ // eslint-disable-line
 		PropTypes.number,
 		PropTypes.string,
 	]),

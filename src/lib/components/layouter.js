@@ -63,7 +63,7 @@ const createLayouter = PropTypes => {
 							type: "Button",
 							props: {
 								hierarchyPath: "button",
-								children: ["button"],
+								children: [],
 							},
 						}],
 					},

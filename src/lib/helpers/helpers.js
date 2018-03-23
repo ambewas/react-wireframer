@@ -35,7 +35,6 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 );
 
 export const updateById = (id, prop, value, objs) => {
-	console.log("prop", prop);
 	const propPath = split(".")(prop);
 
 	propPath.shift();
