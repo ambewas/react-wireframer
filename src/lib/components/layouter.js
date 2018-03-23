@@ -58,7 +58,14 @@ const createLayouter = PropTypes => {
 							background: "grey",
 							padding: "20px",
 						},
-						children: [],
+						children: [{
+							id: "button",
+							type: "Button",
+							props: {
+								hierarchyPath: "button",
+								children: ["button"],
+							},
+						}],
 					},
 				}],
 				propInputs: {},
