@@ -90,6 +90,7 @@ const createLayouter = PropTypes => {
 			}
 
 			if (this.cmdDown && e.keyCode === 90) {
+				// undo action. Basically render again with the last item in the history
 				this.history = dropLast(1, this.history);
 				this.setState({
 					hierarchy: last(this.history),
@@ -151,20 +152,17 @@ const createLayouter = PropTypes => {
 		}
 
 		updatePropInHierarchy = (prop, path, value) => {
-			const stateArray = this.state.hierarchy;
+			const { hierarchy } = this.state;
+			const newArray = updateById(path, prop, value, hierarchy);
 
-			const newArray = updateById(path, prop, value, stateArray);
-
-			console.log("newArray", newArray);
 			this.setStateWithHistory({
 				hierarchy: newArray,
 			});
 		}
 
 		removeFromHierarchy = (path) => {
-			const stateArray = this.state.hierarchy;
-
-			const newArray = removeById(path, stateArray);
+			const { hierarchy } = this.state;
+			const newArray = removeById(path, hierarchy);
 
 			this.setStateWithHistory({
 				hierarchy: newArray,
@@ -202,10 +200,8 @@ const createLayouter = PropTypes => {
 			this.updatePropInHierarchy(prop, this.state.currentHierarchyPath, value);
 		}
 
-		showPropList = (prop) => {
-			this.setState({
-				listedProp: prop,
-			});
+		showPropList = (listedProp) => {
+			this.setState({ listedProp });
 		}
 
 		handlePropInput = (e, inputPath, inputType) => {
@@ -224,9 +220,11 @@ const createLayouter = PropTypes => {
 		}
 
 		handlePropInputBlur = (inputPath, inputValue) => {
+			// make sure we don't accidentally delete components when entering values
 			this.isEnteringValue = false;
 			this.setPropInHierarchy(inputPath, inputValue);
 		}
+
 		handleSelectInput = (e, inputPath) => {
 			e.stopPropagation();
 
@@ -235,7 +233,6 @@ const createLayouter = PropTypes => {
 
 			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
 
-			// TODO -- add support for nested values
 			this.setState({ propInputs: newState }, () => this.setPropInHierarchy(inputPath, value));
 		}
 
@@ -258,7 +255,6 @@ const createLayouter = PropTypes => {
 
 			const inputValue = view(lensPath(inputPath.split(".")), propInputs);
 
-			console.log("inputValue", inputValue);
 			return (
 				<div>
 					<input
@@ -266,8 +262,8 @@ const createLayouter = PropTypes => {
 						type={inputType}
 						onChange={e => this.handlePropInput(e, inputPath, inputType)}
 						onBlur={() => this.handlePropInputBlur(inputPath, inputValue)}
-						value={inputValue == null ? "" : inputValue} // eslint-disable-line
 						// check for null is to avoid going from an uncontrolled to a controlled input
+						value={inputValue == null ? "" : inputValue} // eslint-disable-line
 						checked={inputType === "checkbox" ? inputValue == null ? "" : inputValue : false} // eslint-disable-line
 						name={inputPath}
 					/>
@@ -277,6 +273,8 @@ const createLayouter = PropTypes => {
 
 		renderShape = (shape, deeperKey) => {
 			const shapeKeys = Object.keys(shape);
+
+			// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
 			const inputs = shapeKeys.map(shapeKey => {
 				// build key path to support updates of deeper keys
 				const keyPath = deeperKey ? `${deeperKey}.${shapeKey}` : shapeKey;
@@ -303,7 +301,6 @@ const createLayouter = PropTypes => {
 			}
 
 			if (propTypeDefinition.type === "shape") {
-				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
 				return this.renderShape(propTypeDefinition.shapeTypes, propTypePath);
 			}
 
@@ -363,6 +360,7 @@ const createLayouter = PropTypes => {
 					>
 						<div
 							style={{ position: "absolute", right: 0, top: 0, border: "1px solid red", padding: 12, margin: 20, cursor: "pointer" }}
+							// close the panel
 							onClick={() => this.setState({ currentHierarchyPath: undefined })}
 						>
 							X
@@ -386,7 +384,6 @@ const createLayouter = PropTypes => {
 				activeComponentHierarchyPath:  this.state.currentHierarchyPath,
 			};
 
-			console.log("render");
 			return (
 				<DragDropContextProvider backend={HTML5Backend}>
 					<HierarchyContext.Provider value={contextObject}>
