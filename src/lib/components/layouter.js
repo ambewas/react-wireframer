@@ -360,7 +360,6 @@ const createLayouter = PropTypes => {
 							overflow: "scroll",
 							boxShadow: "0px 6px 14px black",
 						}}
-						onClick={e => e.stopPropagation()}
 					>
 						{propList}
 					</div>
@@ -377,6 +376,7 @@ const createLayouter = PropTypes => {
 				removeFromHierarchy: this.removeFromHierarchy,
 				moveInHierarchy: this.moveInHierarchy,
 				setPropListInSwitcher: this.setPropListInSwitcher,
+				activeComponentHierarchyPath:  this.state.currentHierarchyPath,
 			};
 
 			console.log("render");

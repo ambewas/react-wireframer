@@ -115,41 +115,40 @@ const configurable = (WrappedComponent, PropTypes) => {
 			return { ...props, ...extraProps };
 		}
 
-		renderPropSwitcher = () => {
+		passPropSwitcherData = (e) => {
+			e.stopPropagation();
 			const { props } = this.state;
 			const { ctx } = this.props;
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 			// render a list of all props that can be edited. We'll omit any props added by react dnd etc.
 
 			if (props) {
-				// const propList = this.renderPropList(propTypeDefinitions);
-
+				// pass the definitions and path to Layouter.
 				ctx.setPropListInSwitcher(propTypeDefinitions, this.props.hierarchyPath);
 			}
 		}
 
-		handleComponentClick = (e) => {
-			e.stopPropagation();
-			this.setState({ propSwitcher: !this.state.propSwitcher });
-		}
-
 		render() {
 			const { children, ...restProps } = this.state.props;
-			const { isOverCurrent, connectDropTarget, ctx, connectDragSource } = this.props;
+			const { isOverCurrent, connectDropTarget, connectDragSource, ctx } = this.props;
 
-			const style = isOverCurrent ? { borderLeft: "4px solid green" } : {};
+			console.log("ctx", ctx);
+			const isActive = ctx && (this.props.hierarchyPath === ctx.activeComponentHierarchyPath);
+			const style = isOverCurrent || isActive ? { borderLeft: "4px solid green" } : {};
 
 			const cleanProps = getCleanProps(restProps);
 
 			return (
 				<div
-					style={{ position: "relative", borderLeft: this.state.propSwitcher && "4px solid orange" }}
+					style={{ position: "relative" }}
 				>
-					<div style={{ position: "relative" }}>{this.state.propSwitcher && this.renderPropSwitcher()}</div>
 					{
 						connectDropTarget(
 							connectDragSource(
-								<div style={style} onClick={((e) => this.handleComponentClick(e))}>
+								<div
+									style={style}
+									onClick={this.passPropSwitcherData} // eslint-disable-line
+								>
 									<WrappedComponent {...cleanProps}>
 										{children || this.props.children}
 									</WrappedComponent>
