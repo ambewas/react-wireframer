@@ -47,7 +47,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const wrappedComponentProps = this.getWrappedComponentProps();
 
 			this.state = {
-				props: { ...wrappedComponentProps, ...this.props },
+				props: {  ...this.props },
 				listedProp: undefined,
 				propInputs: { ...wrappedComponentProps, ...this.props },
 			};
@@ -88,7 +88,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 				// filter out all function props; We can't do anything with them anyway.
 				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-				console.log("propTypeDefinitions", propTypeDefinitions);
 				const cleanedKeys = omit(
 					compose(
 						keys,
@@ -164,7 +163,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			const { propInputs } = this.state;
 			const inputValue = propInputs[inputPath];
 
-			// console.log("propTypeDefinition", propTypeDefinition);
 			return (
 				<div>
 					<input
@@ -182,30 +180,30 @@ const configurable = (WrappedComponent, PropTypes) => {
 			);
 		}
 
-		renderShape = (shape) => {
+		renderShape = (shape, deeperKey) => {
 			const shapeKeys = Object.keys(shape);
 			const inputs = shapeKeys.map(shapeKey => {
 
-				console.log("shape[shapeKey]", shape[shapeKey]);
+
+				// build key path to support updates of deeper keys
+				const keyPath = deeperKey ? `${deeperKey}.${shapeKey}` : shapeKey;
+
 				if (shape[shapeKey].shapeTypes) {
-					// TODO -- save the returned components
-					console.log("found it");
 					return (
 						<div>
 							<div style={{ borderBottom: "2px solid blue" }}>{shapeKey}</div>
-							<div style={{ marginLeft: 20 }}>{this.renderShape(shape[shapeKey].shapeTypes)}</div>
+							<div style={{ marginLeft: 20 }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
 						</div>
 					);
 				}
-				return <div key={shapeKey}>{shapeKey}{this.getInputType(shape[shapeKey], shapeKey)}</div>;
+
+				return <div key={shapeKey}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
 			});
 
 			return inputs;
 		}
 
 		getInputType = (propTypeDefinition, propTypeKey) => {
-		// 	const { propInputs } = this.state;
-
 			if (propTypeDefinition && propTypeDefinition.type === "enum") {
 				// TODO -- must also add value for initialising correctly.
 				return this.renderSelectBox(propTypeDefinition, propTypeKey);
@@ -213,8 +211,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			if (propTypeDefinition && propTypeDefinition.type === "shape") {
 				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
-				console.log("propTypeDefinition", propTypeDefinition);
-				return this.renderShape(propTypeDefinition.shapeTypes);
+				return this.renderShape(propTypeDefinition.shapeTypes, propTypeKey);
 			}
 
 			return this.renderInputBox(propTypeKey);

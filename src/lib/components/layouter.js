@@ -151,10 +151,9 @@ const createLayouter = PropTypes => {
 
 		updatePropInHierarchy = (prop, path, value) => {
 			const stateArray = this.state.hierarchy;
+
 			const newArray = updateById(path, prop, value, stateArray);
 
-			console.log("prop, path, value", prop, path, value);
-			console.log("stateArray", stateArray);
 			console.log("newArray", newArray);
 			this.setStateWithHistory({
 				hierarchy: newArray,

@@ -33,9 +33,12 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 	)
 );
 
-export const updateById = (id, prop, value, objs) => (
-	recursiveUpdateById(id, set(lensPath(["props", prop]), value), objs)
-);
+export const updateById = (id, prop, value, objs) => {
+	console.log("prop", prop);
+	const propPath = prop.split(".");
+
+	return recursiveUpdateById(id, set(lensPath(["props", ...propPath]), value), objs);
+};
 
 export const addById = (id, value, objs) => (
 	recursiveUpdateById(id, evolve(

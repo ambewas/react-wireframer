@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Button = ({ children = "button", background = "pink", borderColor = "white", getBackground, light = false }) => (
-	<div style={{ padding: "10px 30px", background: background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
+const Button = ({ children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
+	<div style={{ padding: "10px 30px", background: myShape.background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
 		{getBackground && getBackground()}
 	</div>
@@ -24,15 +24,15 @@ const myHoc = (WrappedComponent) => {
 
 Button.propTypes = {
 	children: PropTypes.node,
-	background: PropTypes.oneOf(["red", "green"]),
 	light: PropTypes.bool,
 	getBackground: PropTypes.func,
 	borderColor: PropTypes.string,
-	whuu: PropTypes.oneOfType([
+	whuu: PropTypes.oneOfType([ // eslint-disable-line
 		PropTypes.number,
 		PropTypes.string,
 	]),
 	myShape: PropTypes.shape({ // eslint-disable-line
+		background: PropTypes.oneOf(["red", "green", "orange"]),
 		foo: PropTypes.string,
 		bar: PropTypes.bool,
 		baz: PropTypes.oneOf(["shoe", "store"]),
