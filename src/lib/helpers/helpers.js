@@ -9,6 +9,7 @@ import {
 	append,
 	reject,
 	identity,
+	split,
 } from "ramda";
 // import generateJSX from "./generateJSX";
 
@@ -35,8 +36,9 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 
 export const updateById = (id, prop, value, objs) => {
 	console.log("prop", prop);
-	const propPath = prop.split(".");
+	const propPath = split(".")(prop);
 
+	propPath.shift();
 	return recursiveUpdateById(id, set(lensPath(["props", ...propPath]), value), objs);
 };
 

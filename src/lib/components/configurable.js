@@ -1,9 +1,10 @@
 /**
  * todo
  *
- * shape inputs?? !
- * set arrays as values on array props
- * remove on backspace
+ * move prop input handling to separate component
+ * render this input handler inside Layouter, which is a more logical structure.
+ *
+ * handle oneOfType -> selectbox for the type, then render the type input
  */
 
 import React, { Component } from "react";
@@ -114,175 +115,16 @@ const configurable = (WrappedComponent, PropTypes) => {
 			return { ...props, ...extraProps };
 		}
 
-		setPropInHierarchy = (prop, value) => {
-			const { ctx } = this.props;
-			// update the specific prop in the hierarhcy from the context
-			// Layouter will re-render, and updates will propagate.
-
-			ctx.updatePropInHierarchy(prop, this.props.hierarchyPath, value);
-		}
-
-		showPropList = (prop) => {
-			this.setState({
-				listedProp: prop,
-			});
-		}
-
-		handlePropInput = (e, inputPath, inputType) => {
-			this.isEnteringValue = true;
-			// text-input values update. No need to propagate this in the hierarchy.
-			const { propInputs } = this.state;
-
-			const value = inputType === "checkbox" ? e.target.checked : e.target.value;
-			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
-
-			this.setState({ propInputs: newState }, () => {
-				if (inputType === "checkbox") {
-					this.setPropInHierarchy(inputPath, value);
-				}
-			});
-		}
-
-		handlePropInputBlur = (inputPath, inputValue) => {
-			this.isEnteringValue = false;
-			this.setPropInHierarchy(inputPath, inputValue);
-		}
-		handleSelectInput = (e, inputPath) => {
-			e.stopPropagation();
-
-			const { propInputs } = this.state;
-			const value = e.target.value;
-
-			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
-
-			// TODO -- add support for nested values
-			this.setState({ propInputs: newState }, () => this.setPropInHierarchy(inputPath, value));
-		}
-
-		renderSelectBox = (propTypeDefinition, inputPath) => {
-			const { propInputs } = this.state;
-
-			const selectValue = propInputs[inputPath];
-			const options = propTypeDefinition.expectedValues;
-			const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
-
-			return (
-				<select name={inputPath} value={selectValue} onChange={(e) => this.handleSelectInput(e, inputPath)}>
-					{optionsArray}
-				</select>
-			);
-		}
-
-		renderInputBox = (inputPath, inputType) => {
-			const { propInputs } = this.state;
-			const inputValue = view(lensPath(inputPath.split(".")), propInputs);
-
-			console.log("inputValue", inputValue);
-			return (
-				<div>
-					<input
-						onClick={e => e.stopPropagation()}
-						type={inputType}
-						onChange={e => this.handlePropInput(e, inputPath, inputType)}
-						onBlur={() => this.handlePropInputBlur(inputPath, inputValue)}
-						value={inputValue}
-						// check for null is to avoid going from an uncontrolled to a controlled input
-						checked={inputType === "checkbox" ? inputValue == null ? "" : inputValue : false} // eslint-disable-line
-						name={inputPath}
-					/>
-				</div>
-			);
-		}
-
-		renderShape = (shape, deeperKey) => {
-			const shapeKeys = Object.keys(shape);
-			const inputs = shapeKeys.map(shapeKey => {
-				// build key path to support updates of deeper keys
-				const keyPath = deeperKey ? `${deeperKey}.${shapeKey}` : shapeKey;
-
-				if (shape[shapeKey].shapeTypes) {
-					return (
-						<div key={keyPath} style={{ display: "flex", paddingBottom: 12 }}>
-							<div>{shapeKey}</div>
-							<div style={{ marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
-						</div>
-					);
-				}
-
-				return <div key={shapeKey} style={{ display: "flex", paddingBottom: 12  }}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
-			});
-
-			return inputs;
-		}
-
-		getInputType = (propTypeDefinition, propTypeKey) => {
-			if (propTypeDefinition.type === "enum") {
-				// TODO -- must also add value for initialising correctly.
-				return this.renderSelectBox(propTypeDefinition, propTypeKey);
-			}
-
-			if (propTypeDefinition.type === "shape") {
-				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
-				return this.renderShape(propTypeDefinition.shapeTypes, propTypeKey);
-			}
-
-			if (propTypeDefinition.type === "number") {
-				return this.renderInputBox(propTypeKey, "number");
-			}
-
-			if (propTypeDefinition.type === "boolean") {
-				return this.renderInputBox(propTypeKey, "checkbox");
-			}
-
-			return this.renderInputBox(propTypeKey, "text");
-		}
-
-
-		renderPropList = (propTypeDefinitions) => {
-			const propTypeKeys = Object.keys(propTypeDefinitions);
-
-			return propTypeKeys.map(propTypeKey => {
-				const style = propTypeDefinitions[propTypeKey].type === "shape" ? { marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" } : {};
-
-				return (
-					<div key={propTypeKey} style={{ display: "flex", paddingBottom: 12  }}>
-						{propTypeKey}
-						<div style={style}>{this.getInputType(propTypeDefinitions[propTypeKey], propTypeKey)}</div>
-					</div>
-				);
-			});
-		}
-
 		renderPropSwitcher = () => {
 			const { props } = this.state;
+			const { ctx } = this.props;
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 			// render a list of all props that can be edited. We'll omit any props added by react dnd etc.
 
 			if (props) {
-				// const cleanProps = getCleanProps(props);
+				// const propList = this.renderPropList(propTypeDefinitions);
 
-				const propList = this.renderPropList(propTypeDefinitions);
-
-				return (
-					<div
-						style={{ position: "fixed",
-							zIndex: 99999999,
-							textAlign: "left",
-							padding: "10px 30px",
-							backgroundColor: "white",
-							right: 0,
-							top: 0,
-							width: 500,
-							height: "100vh",
-							color: "black",
-							overflow: "scroll",
-							boxShadow: "0px 6px 14px black",
-						}}
-						onClick={e => e.stopPropagation()}
-					>
-						{propList}
-					</div>
-				);
+				ctx.setPropListInSwitcher(propTypeDefinitions, this.props.hierarchyPath);
 			}
 		}
 

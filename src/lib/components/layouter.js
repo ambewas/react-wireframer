@@ -6,7 +6,7 @@ import { DragDropContextProvider, DragSource } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { updateById, addById, removeById, getById } from "../helpers/helpers";
 import { cardSource, dragCollect } from "../helpers/dragDropContracts";
-import { last, dropLast } from "ramda";
+import { last, dropLast, set, view, lensPath } from "ramda";
 
 const hierarchyToComponents = (children, components, PropTypes) => {
 	if (!Array.isArray(children)) {
@@ -60,6 +60,7 @@ const createLayouter = PropTypes => {
 						children: [],
 					},
 				}],
+				propInputs: {},
 			};
 
 			this.history = [this.state.hierarchy];
@@ -195,6 +196,178 @@ const createLayouter = PropTypes => {
 			);
 		}
 
+		setPropInHierarchy = (prop, value) => {
+			// update the specific prop in the hierarhcy from the context
+			// Layouter will re-render, and updates will propagate.
+			this.updatePropInHierarchy(prop, this.state.currentHierarchyPath, value);
+		}
+
+		showPropList = (prop) => {
+			this.setState({
+				listedProp: prop,
+			});
+		}
+
+		handlePropInput = (e, inputPath, inputType) => {
+			this.isEnteringValue = true;
+			// text-input values update. No need to propagate this in the hierarchy.
+			const { propInputs } = this.state;
+
+			const value = inputType === "checkbox" ? e.target.checked : e.target.value;
+			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
+
+			this.setState({ propInputs: newState }, () => {
+				if (inputType === "checkbox") {
+					this.setPropInHierarchy(inputPath, value);
+				}
+			});
+		}
+
+		handlePropInputBlur = (inputPath, inputValue) => {
+			this.isEnteringValue = false;
+			this.setPropInHierarchy(inputPath, inputValue);
+		}
+		handleSelectInput = (e, inputPath) => {
+			e.stopPropagation();
+
+			const { propInputs } = this.state;
+			const value = e.target.value;
+
+			const newState = set(lensPath(inputPath.split(".")), value, propInputs);
+
+			// TODO -- add support for nested values
+			this.setState({ propInputs: newState }, () => this.setPropInHierarchy(inputPath, value));
+		}
+
+		renderSelectBox = (propTypeDefinition, inputPath) => {
+			const { propInputs } = this.state;
+
+			const selectValue = propInputs[inputPath];
+			const options = propTypeDefinition.expectedValues;
+			const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
+
+			return (
+				<select name={inputPath} value={selectValue} onChange={(e) => this.handleSelectInput(e, inputPath)}>
+					{optionsArray}
+				</select>
+			);
+		}
+
+		renderInputBox = (inputPath, inputType) => {
+			const { propInputs } = this.state;
+
+			const inputValue = view(lensPath(inputPath.split(".")), propInputs);
+
+			console.log("inputValue", inputValue);
+			return (
+				<div>
+					<input
+						onClick={e => e.stopPropagation()}
+						type={inputType}
+						onChange={e => this.handlePropInput(e, inputPath, inputType)}
+						onBlur={() => this.handlePropInputBlur(inputPath, inputValue)}
+						value={inputValue == null ? "" : inputValue} // eslint-disable-line
+						// check for null is to avoid going from an uncontrolled to a controlled input
+						checked={inputType === "checkbox" ? inputValue == null ? "" : inputValue : false} // eslint-disable-line
+						name={inputPath}
+					/>
+				</div>
+			);
+		}
+
+		renderShape = (shape, deeperKey) => {
+			const shapeKeys = Object.keys(shape);
+			const inputs = shapeKeys.map(shapeKey => {
+				// build key path to support updates of deeper keys
+				const keyPath = deeperKey ? `${deeperKey}.${shapeKey}` : shapeKey;
+
+				if (shape[shapeKey].shapeTypes) {
+					return (
+						<div key={keyPath} style={{ display: "flex", paddingBottom: 12 }}>
+							<div>{shapeKey}</div>
+							<div style={{ marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
+						</div>
+					);
+				}
+
+				return <div key={shapeKey} style={{ display: "flex", paddingBottom: 12  }}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
+			});
+
+			return inputs;
+		}
+
+		getInputType = (propTypeDefinition, propTypePath) => {
+			if (propTypeDefinition.type === "enum") {
+				// TODO -- must also add value for initialising correctly.
+				return this.renderSelectBox(propTypeDefinition, propTypePath);
+			}
+
+			if (propTypeDefinition.type === "shape") {
+				// loop through the shape and print a select box for each one, with a little bit more marginLeft for every prop...
+				return this.renderShape(propTypeDefinition.shapeTypes, propTypePath);
+			}
+
+			if (propTypeDefinition.type === "number") {
+				return this.renderInputBox(propTypePath, "number");
+			}
+
+			if (propTypeDefinition.type === "boolean") {
+				return this.renderInputBox(propTypePath, "checkbox");
+			}
+
+			return this.renderInputBox(propTypePath, "text");
+		}
+
+
+		renderPropList = (propTypeDefinitions) => {
+			const { currentHierarchyPath } = this.state;
+			const propTypeKeys = Object.keys(propTypeDefinitions);
+
+			return propTypeKeys.map(propTypeKey => {
+				const style = propTypeDefinitions[propTypeKey].type === "shape" ? { marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" } : {};
+
+				return (
+					<div key={propTypeKey} style={{ display: "flex", paddingBottom: 12  }}>
+						{propTypeKey}
+						<div style={style}>{this.getInputType(propTypeDefinitions[propTypeKey], `${currentHierarchyPath}.${propTypeKey}`)}</div>
+					</div>
+				);
+			});
+		}
+
+		setPropListInSwitcher = (propTypeDefinitions, currentHierarchyPath) => {
+			this.setState({ propTypeDefinitions, currentHierarchyPath });
+		}
+
+		renderPropSwitcher = () => {
+			const { propTypeDefinitions } = this.state;
+
+			if (propTypeDefinitions) {
+				const propList = this.renderPropList(propTypeDefinitions);
+
+				return (
+					<div
+						style={{ position: "fixed",
+							zIndex: 99999999,
+							textAlign: "left",
+							padding: "10px 30px",
+							backgroundColor: "white",
+							right: 0,
+							top: 0,
+							width: 500,
+							height: "100vh",
+							color: "black",
+							overflow: "scroll",
+							boxShadow: "0px 6px 14px black",
+						}}
+						onClick={e => e.stopPropagation()}
+					>
+						{propList}
+					</div>
+				);
+			}
+		}
+
 		render() {
 			const components = hierarchyToComponents(this.state.hierarchy, this.props.components, PropTypes);
 
@@ -203,12 +376,15 @@ const createLayouter = PropTypes => {
 				addToHierarchy: this.addToHierarchy,
 				removeFromHierarchy: this.removeFromHierarchy,
 				moveInHierarchy: this.moveInHierarchy,
+				setPropListInSwitcher: this.setPropListInSwitcher,
 			};
 
+			console.log("render");
 			return (
 				<DragDropContextProvider backend={HTML5Backend}>
 					<HierarchyContext.Provider value={contextObject}>
-						{ this.getComponentList() }
+						{this.renderPropSwitcher()}
+						{this.getComponentList()}
 						{ Array.isArray(components) ? components.map(Comp => Comp) : components}
 					</HierarchyContext.Provider>
 				</DragDropContextProvider>
