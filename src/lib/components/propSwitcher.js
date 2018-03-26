@@ -20,13 +20,16 @@ class PropSwitcher extends Component {
 	handlePropInput = (e, inputPath, inputType) => {
 		const { updatePropInHierarchy, hierarchyPath } = this.props;
 
-		this.isEnteringValue = true;
+		console.log("e.target.value", e.target.value);
 		// text-input values update. No need to propagate this in the hierarchy.
 		const { propInputs } = this.state;
 
 		const value = inputType === "checkbox" ? e.target.checked : e.target.value;
+
+		console.log("propInputs", propInputs);
 		const newState = set(lensPath(inputPath.split(".")), value, propInputs);
 
+		console.log("newState", newState);
 		this.setState({ propInputs: newState }, () => {
 			if (inputType === "checkbox") {
 				updatePropInHierarchy(inputPath, hierarchyPath, value);
@@ -72,7 +75,8 @@ class PropSwitcher extends Component {
 
 		const inputPathArray = inputPath.split(".");
 
-		const inputValue =  view(lensPath(inputPathArray), propInputs) || view(lensPath(inputPathArray.slice(1)), theComponentProps);
+		const localValue = view(lensPath(inputPathArray), propInputs);
+		const inputValue = localValue == null ? view(lensPath(inputPathArray.slice(1)), theComponentProps) : localValue; // eslint-disable-line
 
 		return (
 			<div>
