@@ -8,6 +8,7 @@ import { updateById, addById, removeById, getById } from "../helpers/helpers";
 import { cardSource, dragCollect } from "../helpers/dragDropContracts";
 import { last, dropLast } from "ramda";
 import PropSwitcher from "./propSwitcher";
+import generateJSX from "../helpers/generateJSX";
 
 const hierarchyToComponents = (children, components, PropTypes) => {
 	if (!Array.isArray(children)) {
@@ -184,12 +185,38 @@ const createLayouter = PropTypes => {
 				currentHierarchyPath: undefined,
 			});
 		}
+		handleJSONprintButton = (e) => {
+			if (e) {
+				e.preventDefault();
+			}
+			const JSONData = JSON.stringify(this.state.hierarchy);
+
+			console.log(JSONData);
+			return JSONData;
+		}
+
+		handleJSXprintButton = (e) => {
+			e.preventDefault();
+			const JSONData = this.state.hierarchy;
+			const JSX = generateJSX(JSONData)[0];
+
+			console.log("JSX", JSX);
+		}
+		getJSONbutton = () => {
+			return (
+				<div>
+					<button onClick={this.handleJSONprintButton}>get the JSON</button>
+					<button onClick={this.handleJSXprintButton}>get the JSX</button>
+				</div>
+			);
+		}
 
 		getComponentList = () => {
 			const { components } = this.props;
 
 			return (
 				<div style={{ position: "fixed", bottom: 0, background: "grey", right: 0, left: 0, padding: 20, zIndex: 100000000000, maxHeight: 300, overflow: "scroll" }}>
+					{this.getJSONbutton()}
 					{Object.keys(components).map((comp, i) => {
 						const ActualComponent = components[comp];
 						const Interim = (props) => {
