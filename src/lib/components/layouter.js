@@ -107,7 +107,7 @@ const createLayouter = PropTypes => {
 			}
 
 			// remove component action
-			if (e.keyCode === 8 && !this.isEnteringValue) {
+			if (e.keyCode === 8) {
 				this.removeFromHierarchy(this.state.currentHierarchyPath);
 			}
 		}

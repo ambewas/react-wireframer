@@ -35,10 +35,8 @@ class PropSwitcher extends Component {
 	}
 
 	handlePropInputBlur = (inputPath, inputValue) => {
-		// make sure we don't accidentally delete components when entering values
 		const { updatePropInHierarchy, hierarchyPath } = this.props;
 
-		this.isEnteringValue = false;
 		updatePropInHierarchy(inputPath, hierarchyPath, inputValue);
 	}
 
