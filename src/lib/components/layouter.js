@@ -94,7 +94,8 @@ const createLayouter = PropTypes => {
 		}
 
 		handleKeyDown = (e) => {
-			if (e.keyCode === 91) {
+			if (e.keyCode === 91 || e.keyCode === 93) {
+				console.log("cmd down?");
 				// cmd is held down
 				this.cmdDown = true;
 			}
@@ -108,7 +109,7 @@ const createLayouter = PropTypes => {
 			}
 
 			// remove component action
-			if (e.keyCode === 8) {
+			if (this.cmdDown && e.keyCode === 8) {
 				this.removeFromHierarchy(this.state.currentHierarchyPath);
 			}
 		}
