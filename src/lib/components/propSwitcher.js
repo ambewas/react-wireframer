@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, { Component } from "react";
-import { set, view, lensPath } from "ramda";
+import { set, view, lensPath, omit, compose, propEq, keys, filter } from "ramda";
 import { getById } from "../helpers/helpers";
 
 class PropSwitcher extends Component {
@@ -163,9 +163,16 @@ class PropSwitcher extends Component {
 
 	renderPropList = () => {
 		const { hierarchyPath, propTypeDefinitions } = this.props;
-		const propTypeKeys = Object.keys(propTypeDefinitions);
 
-		return propTypeKeys.map(propTypeKey => {
+		const cleanedKeys = omit(
+			compose(
+				keys,
+				filter(propEq("type", "function")),
+			)(propTypeDefinitions),
+			propTypeDefinitions,
+		);
+
+		return Object.keys(cleanedKeys).map(propTypeKey => {
 			const style = propTypeDefinitions[propTypeKey].type === "shape" ? { marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" } : {};
 
 			return (

@@ -52,32 +52,14 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		getWrappedComponentProps = () => {
-			const extraPropTypes = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-
-			const extraProps = Object.keys(extraPropTypes).reduce((acc, key) => {
-				const keyValue = extraPropTypes[key] && extraPropTypes[key].type === "shape" ? getPropTypeShape(extraPropTypes[key].shapeTypes) : undefined;
-
-				return {
-					...acc,
-					[key]: keyValue,
-				};
-			}, {});
 			let props;
 
 			if (WrappedComponent.propTypes) {
 				// filter out all function props; We can't do anything with them anyway.
 				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-				const cleanedKeys = omit(
-					compose(
-						keys,
-						filter(propEq("type", "functions")),
-					)(propTypeDefinitions),
-					propTypeDefinitions,
-				);
-
 				// build a props object based on these keys and shapeTypes.
-				props = Object.keys(cleanedKeys).reduce((acc, key) => {
+				props = Object.keys(propTypeDefinitions).reduce((acc, key) => {
 					const keyValue = propTypeDefinitions[key] && propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
 					return {
@@ -86,9 +68,9 @@ const configurable = (WrappedComponent, PropTypes) => {
 						children: this.props.children,
 					};
 				}, {});
-
 			}
-			return { ...props, ...extraProps };
+			console.log("props", props);
+			return { ...props };
 		}
 
 		passPropSwitcherData = (e) => {
