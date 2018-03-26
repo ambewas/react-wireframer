@@ -9,10 +9,6 @@
     "demo": "node scripts/demo.js",
     "test": "node scripts/test.js --env=jsdom"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DimitriMikadze/create-react-library.git"
-  },
   "author": "Kevin Decock <kevindec@gmail.com>",
   "license": "MIT",
   "dependencies": {

@@ -185,6 +185,7 @@ const createLayouter = PropTypes => {
 				currentHierarchyPath: undefined,
 			});
 		}
+
 		handleJSONprintButton = (e) => {
 			if (e) {
 				e.preventDefault();
@@ -200,8 +201,9 @@ const createLayouter = PropTypes => {
 			const JSONData = this.state.hierarchy;
 			const JSX = generateJSX(JSONData)[0];
 
-			console.log("JSX", JSX);
+			console.log(JSX);
 		}
+
 		getJSONbutton = () => {
 			return (
 				<div>
@@ -223,8 +225,7 @@ const createLayouter = PropTypes => {
 							return props.connectDragSource(
 								<div style={{ padding: 20, border: "3px solid red" }}>
 									<p>component: {comp}</p>
-									<p>--preview--</p>
-									<ActualComponent>{"some child"}</ActualComponent>
+									<ActualComponent>{comp}</ActualComponent>
 								</div>
 							);
 						};
