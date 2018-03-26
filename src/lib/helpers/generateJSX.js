@@ -10,6 +10,9 @@ const getPropString = (props) => {
 			if (typeof props[key] === "object") {
 				return ` ${key}={${JSON.stringify(props[key])}}`;
 			}
+			if (typeof props[key] === "boolean") {
+				return ` ${key}={${props[key]}}`;
+			}
 			return ` ${key}="${props[key]}"`;
 		});
 };
@@ -36,8 +39,3 @@ const generateJSX = (json) => {
 };
 
 export default generateJSX;
-
-
-/**
- * hierarchyPath not needed
- */
