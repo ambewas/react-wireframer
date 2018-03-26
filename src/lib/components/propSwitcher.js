@@ -162,6 +162,11 @@ class PropSwitcher extends Component {
 			return this.renderInputBox(propTypePath, "text", "array");
 		}
 
+		if (propTypeDefinition.type === "arrayOf") {
+			console.log("propTypeDefinition", propTypeDefinition);
+			return this.getInputType(propTypeDefinition.expectedType, propTypePath, "text");
+		}
+
 		return this.renderInputBox(propTypePath, "text");
 	}
 

@@ -95,7 +95,6 @@ const createLayouter = PropTypes => {
 
 		handleKeyDown = (e) => {
 			if (e.keyCode === 91 || e.keyCode === 93) {
-				console.log("cmd down?");
 				// cmd is held down
 				this.cmdDown = true;
 			}
@@ -171,6 +170,7 @@ const createLayouter = PropTypes => {
 			const { hierarchy } = this.state;
 			const newArray = updateById(path, prop, value, hierarchy);
 
+			console.log("prop, path, value", prop, path, value);
 			this.setStateWithHistory({
 				hierarchy: newArray,
 			});
@@ -280,6 +280,7 @@ const createLayouter = PropTypes => {
 								onCloseClick={() => this.setState({ currentHierarchyPath: undefined })}
 							/>
 						)}
+						{"version 1"}
 						{this.getComponentList()}
 						{ Array.isArray(components) ? components.map(Comp => Comp) : components}
 					</HierarchyContext.Provider>

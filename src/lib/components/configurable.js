@@ -69,7 +69,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 					};
 				}, {});
 			}
-			console.log("props", props);
 			return { ...props };
 		}
 

@@ -5,7 +5,7 @@ const Button = ({ aantal, labels = [], children = "button", borderColor = "white
 	<div style={{ padding: "10px 30px", background: myShape.background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
 		{aantal}
-		{labels.map(label => <span key={label}>{label}</span>)}
+		{labels.map(label => <span key={label}>{label.title}</span>)}
 		{getBackground && getBackground()}
 	</div>
 );
@@ -19,6 +19,7 @@ const myHoc = (WrappedComponent) => {
 				language: "get it from somewhere",
 			};
 
+			console.log("this.props.labels", this.props.labels);
 			return <WrappedComponent {...extraProps} {...this.props} />;
 		}
 	};
@@ -27,7 +28,9 @@ const myHoc = (WrappedComponent) => {
 Button.propTypes = {
 	children: PropTypes.node,
 	light: PropTypes.bool,
-	labels: PropTypes.array,
+	labels: PropTypes.arrayOf(PropTypes.shape({
+		title: PropTypes.number,
+	})),
 	getBackground: PropTypes.func,
 	aantal: PropTypes.oneOfType([ // eslint-disable-line
 		PropTypes.number,
