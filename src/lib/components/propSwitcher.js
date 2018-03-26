@@ -34,10 +34,11 @@ class PropSwitcher extends Component {
 		});
 	}
 
-	handlePropInputBlur = (inputPath, inputValue) => {
+	handlePropInputBlur = (inputPath, inputValue, valueType) => {
 		const { updatePropInHierarchy, hierarchyPath } = this.props;
+		const arrayOrValue = valueType === "array" ? inputValue.split(",") : inputValue;
 
-		updatePropInHierarchy(inputPath, hierarchyPath, inputValue);
+		updatePropInHierarchy(inputPath, hierarchyPath, arrayOrValue);
 	}
 
 	handleSelectInput = (e, inputPath) => {
@@ -63,7 +64,7 @@ class PropSwitcher extends Component {
 		);
 	}
 
-	renderInputBox = (inputPath, inputType) => {
+	renderInputBox = (inputPath, inputType, valueType) => {
 		const { propInputs } = this.state;
 		const { hierarchyPath, hierarchy } = this.props;
 
@@ -79,7 +80,7 @@ class PropSwitcher extends Component {
 					onClick={e => e.stopPropagation()}
 					type={inputType}
 					onChange={e => this.handlePropInput(e, inputPath, inputType)}
-					onBlur={() => this.handlePropInputBlur(inputPath, inputValue)}
+					onBlur={() => this.handlePropInputBlur(inputPath, inputValue, valueType)}
 					// check for null is to avoid going from an uncontrolled to a controlled input
 					value={inputValue == null ? "" : inputValue} // eslint-disable-line
 					checked={inputType === "checkbox" ? inputValue == null ? "" : inputValue : false} // eslint-disable-line
@@ -157,9 +158,12 @@ class PropSwitcher extends Component {
 			return this.renderInputBox(propTypePath, "checkbox");
 		}
 
+		if (propTypeDefinition.type === "array") {
+			return this.renderInputBox(propTypePath, "text", "array");
+		}
+
 		return this.renderInputBox(propTypePath, "text");
 	}
-
 
 	renderPropList = () => {
 		const { hierarchyPath, propTypeDefinitions } = this.props;
