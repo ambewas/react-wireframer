@@ -1,11 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Button = ({ aantal, labels = [], children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
+const Button = ({ aantal, labels = {}, children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
 	<div style={{ padding: "10px 30px", background: myShape.background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
 		{aantal}
-		{labels.map(label => <span key={label}>{label.title}</span>)}
+		{labels && labels.items && labels.items.map(label => <span key={label}>{label.title}</span>)}
 		{getBackground && getBackground()}
 	</div>
 );
@@ -27,9 +27,11 @@ const myHoc = (WrappedComponent) => {
 Button.propTypes = {
 	children: PropTypes.node,
 	light: PropTypes.bool,
-	labels: PropTypes.arrayOf(PropTypes.shape({
-		title: PropTypes.number,
-	})),
+	labels: PropTypes.shape({
+		items: PropTypes.arrayOf(PropTypes.shape({
+			title: PropTypes.number,
+		})),
+	}),
 	getBackground: PropTypes.func,
 	aantal: PropTypes.oneOfType([ // eslint-disable-line
 		PropTypes.number,

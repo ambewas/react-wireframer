@@ -98,14 +98,31 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			// and now for an extremely dirty hack to support arrayOf propTypes.... let's turn it into an array!
 			// I feel so dirty... but this is the fastest way to solve this problem right now. A refactor is necessary to otherwise support it.
-			const hackyProps = cleanProps && Object.keys(cleanProps).reduce((acc, curr) => {
-				const arrayifiedValue = propTypeDefinitions[curr] && propTypeDefinitions[curr].type === "arrayOf" ? [cleanProps[curr]] : cleanProps[curr];
+			const hackyBuildProps = (props, last) => Object.keys(props).reduce((acc, curr) => {
+				const path = last ? `${last}.${curr}` : curr;
+
+				const propDefinition = R.view(R.lensPath(path.split(".")), propTypeDefinitions);
+
+				let value;
+
+				if (propDefinition && propDefinition.type === "arrayOf") {
+					value = [props[curr]];
+				} else {
+					value = props[curr];
+				}
+
+				if (propDefinition && propDefinition.type === "shape") {
+					value = hackyBuildProps(props[curr], `${curr}.shapeTypes`);
+				}
 
 				return {
 					...acc,
-					[curr]: arrayifiedValue,
+					[curr]: value,
 				};
 			}, {});
+
+
+			const hackyProps = hackyBuildProps(cleanProps);
 
 			console.log("hackyProps", hackyProps);
 
