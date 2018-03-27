@@ -1,6 +1,6 @@
 {
   "name": "react-wireframer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Create wireframes with any react component library",
   "main": "build/index.js",
   "scripts": {
