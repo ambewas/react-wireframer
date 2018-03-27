@@ -20,16 +20,13 @@ class PropSwitcher extends Component {
 	handlePropInput = (e, inputPath, inputType) => {
 		const { updatePropInHierarchy, hierarchyPath } = this.props;
 
-		console.log("e.target.value", e.target.value);
 		// text-input values update. No need to propagate this in the hierarchy.
 		const { propInputs } = this.state;
 
 		const value = inputType === "checkbox" ? e.target.checked : e.target.value;
 
-		console.log("propInputs", propInputs);
 		const newState = set(lensPath(inputPath.split(".")), value, propInputs);
 
-		console.log("newState", newState);
 		this.setState({ propInputs: newState }, () => {
 			if (inputType === "checkbox") {
 				updatePropInHierarchy(inputPath, hierarchyPath, value);
@@ -39,7 +36,7 @@ class PropSwitcher extends Component {
 
 	handlePropInputBlur = (inputPath, inputValue, valueType) => {
 		const { updatePropInHierarchy, hierarchyPath } = this.props;
-		const arrayOrValue = valueType === "array" ? inputValue.split(",") : inputValue;
+		const arrayOrValue = valueType === "array" && inputValue != null ? inputValue.split(",") : inputValue; // eslint-disable-line eqeqeq
 
 		updatePropInHierarchy(inputPath, hierarchyPath, arrayOrValue);
 	}
@@ -168,7 +165,8 @@ class PropSwitcher extends Component {
 
 		if (propTypeDefinition.type === "arrayOf") {
 			console.log("propTypeDefinition", propTypeDefinition);
-			return this.getInputType(propTypeDefinition.expectedType, propTypePath, "text");
+
+			return this.getInputType(propTypeDefinition.expectedType, propTypePath);
 		}
 
 		return this.renderInputBox(propTypePath, "text");

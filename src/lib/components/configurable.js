@@ -17,6 +17,7 @@ import {
 	filter,
 } from "ramda";
 
+import * as R from "ramda";
 import {
 	getPropTypeShape,
 	getCleanProps,
@@ -93,6 +94,20 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			const cleanProps = getCleanProps(restProps);
 
+			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
+
+			// and now for an extremely dirty hack to support arrayOf propTypes.... let's turn it into an array!
+			// I feel so dirty... but this is the fastest way to solve this problem right now. A refactor is necessary to otherwise support it.
+			const hackyProps = cleanProps && Object.keys(cleanProps).reduce((acc, curr) => {
+				const arrayifiedValue = propTypeDefinitions[curr] && propTypeDefinitions[curr].type === "arrayOf" ? [cleanProps[curr]] : cleanProps[curr];
+
+				return {
+					...acc,
+					[curr]: arrayifiedValue,
+				};
+			}, {});
+
+
 			return (
 				<div
 					style={{ position: "relative" }}
@@ -104,7 +119,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 									style={style}
 									onClick={this.passPropSwitcherData} // eslint-disable-line
 								>
-									<WrappedComponent {...cleanProps}>
+									<WrappedComponent {...hackyProps}>
 										{children || this.props.children}
 									</WrappedComponent>
 								</div>
