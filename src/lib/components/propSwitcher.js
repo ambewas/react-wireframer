@@ -164,8 +164,6 @@ class PropSwitcher extends Component {
 		}
 
 		if (propTypeDefinition.type === "arrayOf") {
-			console.log("propTypeDefinition", propTypeDefinition);
-
 			return this.getInputType(propTypeDefinition.expectedType, propTypePath);
 		}
 

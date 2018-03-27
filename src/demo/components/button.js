@@ -19,7 +19,6 @@ const myHoc = (WrappedComponent) => {
 				language: "get it from somewhere",
 			};
 
-			console.log("this.props.labels", this.props.labels);
 			return <WrappedComponent {...extraProps} {...this.props} />;
 		}
 	};

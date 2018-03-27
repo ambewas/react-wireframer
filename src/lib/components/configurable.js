@@ -107,6 +107,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 				};
 			}, {});
 
+			console.log("hackyProps", hackyProps);
 
 			return (
 				<div
