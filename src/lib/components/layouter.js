@@ -273,9 +273,7 @@ const createLayouter = PropTypes => {
 			const components = hierarchyToComponents(decoratedHierarchy, this.props.components, PropTypes);
 
 			const contextObject = {
-				updatePropInHierarchy: this.updatePropInHierarchy,
 				addToHierarchy: this.addToHierarchy,
-				removeFromHierarchy: this.removeFromHierarchy,
 				moveInHierarchy: this.moveInHierarchy,
 				setPropListInSwitcher: this.setPropListInSwitcher,
 				activeComponentHierarchyPath:  currentHierarchyPath,
