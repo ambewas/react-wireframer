@@ -142,7 +142,8 @@ const configurable = (WrappedComponent, PropTypes) => {
 									</WrappedComponent>
 								</div>
 							)
-						)}
+						)
+					}
 				</div>
 			);
 		}
@@ -154,4 +155,3 @@ const configurable = (WrappedComponent, PropTypes) => {
 };
 
 export default configurable;
-
