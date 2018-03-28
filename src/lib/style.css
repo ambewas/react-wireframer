@@ -1,0 +1,64 @@
+.__layouter-component-overview {
+  position: fixed;
+  bottom: 0;
+  background: grey;
+  right: 0;
+  left: 0;
+  padding: 20px;
+  z-index: 100000000000;
+  max-height: 300px;
+  overflow: scroll;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.__layouter-component-overview .__layouter-component-overview-preview {
+  padding: 20px;
+  margin: 10px;
+  border: 3px solid red;
+}
+
+.__layouter-print-buttons button {
+  display: block;
+}
+
+.__layouter-drag-drop-area {
+  background: grey;
+  padding: 20px;
+}
+
+.__prop-switcher {
+  position: fixed;
+  z-index: 99999999;
+  text-align: left;
+  padding: 10px 30px;
+  background-color: white;
+  right: 0;
+  top: 0;
+  width: 500px;
+  height: 100vh;
+  color: black;
+  overflow: scroll;
+  box-shadow: 0px 6px 14px black;
+}
+
+.__prop-switcher-close-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 1px solid red;
+  padding: 12px;
+  margin: 20px;
+  cursor: pointer;
+}
+
+.__prop-switcher-shape-style {
+  margin-Left: 20px;
+  padding-Left: 10px;
+  border-Left: 2px solid blue;
+}
+
+.__prop-switcher-input-wrapper {
+  display: flex;
+  padding-bottom: 12px;
+}

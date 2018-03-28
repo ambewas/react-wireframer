@@ -202,7 +202,7 @@ const createLayouter = PropTypes => {
 
 		getJSONandJSXbuttons = () => {
 			return (
-				<div>
+				<div className="__layouter-print-buttons">
 					<button onClick={this.handleJSONprintButton}>get the JSON</button>
 					<button onClick={this.handleJSXprintButton}>get the JSX</button>
 				</div>
@@ -213,13 +213,13 @@ const createLayouter = PropTypes => {
 			const { components } = this.props;
 
 			return (
-				<div style={{ position: "fixed", bottom: 0, background: "grey", right: 0, left: 0, padding: 20, zIndex: 100000000000, maxHeight: 300, overflow: "scroll" }}>
+				<div className="__layouter-component-overview">
 					{this.getJSONandJSXbuttons()}
 					{Object.keys(components).map((comp, i) => {
 						const ActualComponent = components[comp];
 						const Interim = (props) => {
 							return props.connectDragSource(
-								<div style={{ padding: 20, border: "3px solid red" }}>
+								<div className="__layouter-component-overview-preview">
 									<p>component: {comp}</p>
 									<ActualComponent>{comp}</ActualComponent>
 								</div>
@@ -228,7 +228,7 @@ const createLayouter = PropTypes => {
 
 						const Draggable = DragSource("card", cardSource, dragCollect)(Interim);
 
-						return <div key={comp + i}><Draggable componentType={comp} /></div>; // eslint-disable-line
+						return <Draggable key={comp + i} componentType={comp} />; // eslint-disable-line
 					})}
 				</div>
 			);
@@ -254,10 +254,7 @@ const createLayouter = PropTypes => {
 				type: "div",
 				props: {
 					hierarchyPath: "root",
-					style: {
-						background: "grey",
-						padding: "20px",
-					},
+					className: "__layouter-drag-drop-area",
 					children: hierarchy,
 				},
 			}]

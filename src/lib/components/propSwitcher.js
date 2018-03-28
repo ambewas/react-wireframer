@@ -102,14 +102,14 @@ class PropSwitcher extends Component {
 
 			if (shape[shapeKey].shapeTypes) {
 				return (
-					<div key={keyPath} style={{ display: "flex", paddingBottom: 12 }}>
+					<div key={keyPath} className="__prop-switcher-input-wrapper">
 						<div>{shapeKey}</div>
-						<div style={{ marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" }}>{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
+						<div className="__prop-switcher-shape-style">{this.renderShape(shape[shapeKey].shapeTypes, keyPath)}</div>
 					</div>
 				);
 			}
 
-			return <div key={shapeKey} style={{ display: "flex", paddingBottom: 12  }}>{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
+			return <div key={shapeKey} className="__prop-switcher-input-wrapper">{shapeKey}{this.getInputType(shape[shapeKey], keyPath)}</div>;
 		});
 
 		return inputs;
@@ -183,12 +183,12 @@ class PropSwitcher extends Component {
 		);
 
 		return Object.keys(cleanedKeys).map(propTypeKey => {
-			const style = propTypeDefinitions[propTypeKey].type === "shape" ? { marginLeft: 20, paddingLeft: 10, borderLeft: "2px solid blue" } : {};
+			const className = propTypeDefinitions[propTypeKey].type === "shape" ? "__prop-switcher-shape-style" : undefined;
 
 			return (
-				<div key={propTypeKey} style={{ display: "flex", paddingBottom: 12  }}>
+				<div key={propTypeKey} className="__prop-switcher-input-wrapper">
 					{propTypeKey}
-					<div style={style}>{this.getInputType(propTypeDefinitions[propTypeKey], `${hierarchyPath}.${propTypeKey}`)}</div>
+					<div className={className}>{this.getInputType(propTypeDefinitions[propTypeKey], `${hierarchyPath}.${propTypeKey}`)}</div>
 				</div>
 			);
 		});
@@ -202,22 +202,10 @@ class PropSwitcher extends Component {
 
 			return (
 				<div
-					style={{ position: "fixed",
-						zIndex: 99999999,
-						textAlign: "left",
-						padding: "10px 30px",
-						backgroundColor: "white",
-						right: 0,
-						top: 0,
-						width: 500,
-						height: "100vh",
-						color: "black",
-						overflow: "scroll",
-						boxShadow: "0px 6px 14px black",
-					}}
+					className="__prop-switcher"
 				>
 					<div
-						style={{ position: "absolute", right: 0, top: 0, border: "1px solid red", padding: 12, margin: 20, cursor: "pointer" }}
+						className="__prop-switcher-close-button"
 						// close the panel
 						onClick={onCloseClick}
 					>

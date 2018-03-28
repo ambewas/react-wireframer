@@ -8,6 +8,7 @@ import ClassComponent from "./components/class";
 
 import createLayouter from "../lib/components/layouter";
 import "./style.css";
+import "../lib/style.css";
 import configurable from "../lib/components/configurable";
 
 const Layouter = createLayouter(PropTypes);
