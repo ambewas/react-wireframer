@@ -108,7 +108,8 @@ const createLayouter = PropTypes => {
 			}
 
 			// remove component action
-			if (this.cmdDown && e.keyCode === 8) {
+			console.log("e.target.type", e.target.tagName);
+			if (e.keyCode === 8 && e.target.tagName !== "INPUT") {
 				this.removeFromHierarchy(this.state.currentHierarchyPath);
 			}
 		}
