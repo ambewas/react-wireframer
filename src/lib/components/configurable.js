@@ -24,34 +24,23 @@ const configurable = (WrappedComponent, PropTypes) => {
 			ctx: PropTypes.object,
 		};
 
-		constructor(props) {
-			super(props);
-
-			this.state = {
-				props: {  ...this.props },
-			};
-		}
-
 		passPropSwitcherData = (e) => {
 			e.stopPropagation();
-			const { props } = this.state;
 			const { ctx } = this.props;
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-			if (props) {
-				// pass the definitions and path to Layouter.
-				ctx.setPropListInSwitcher(propTypeDefinitions, this.props.hierarchyPath);
-			}
+			// pass the definitions and path to Layouter.
+			ctx.setPropListInSwitcher(propTypeDefinitions, this.props.hierarchyPath);
 		}
 
 		render() {
-			const { children, ...restProps } = this.state.props;
-			const { isOverCurrent, connectDropTarget, connectDragSource, ctx } = this.props;
+			const { isOverCurrent, connectDropTarget, connectDragSource, ctx, children, hierarchyPath, ...restProps } = this.props;
 
-			const isActive = ctx && (this.props.hierarchyPath === ctx.activeComponentHierarchyPath);
+			const isActive = ctx && (hierarchyPath === ctx.activeComponentHierarchyPath);
 			const style = isOverCurrent || isActive ? { borderLeft: "4px solid green" } : {};
 
 			const cleanProps = getCleanProps(restProps);
+
 
 
 			/**
@@ -90,6 +79,13 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 
 			const hackyProps = hackyBuildProps(cleanProps);
+			/**
+			|--------------------------------------------------
+			| end of hacky props..
+			|--------------------------------------------------
+			*/
+
+
 
 			return connectDropTarget(
 				connectDragSource(
