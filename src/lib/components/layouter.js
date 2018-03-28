@@ -63,7 +63,7 @@ const createLayouter = PropTypes => {
 				currentHierarchyPath: undefined,
 			};
 
-			this.history = [this.props.hierarchy];
+			this.history = this.getDecoratedHierarchy(this.props.hierarchy);
 		}
 
 		componentDidMount() {
@@ -93,9 +93,9 @@ const createLayouter = PropTypes => {
 			// TODO -- qwerty support.
 			if (this.cmdDown && e.keyCode === 90) {
 				this.history = dropLast(1, this.history);
-				this.setState({
-					hierarchy: last(this.history),
-				});
+				if (this.history && this.history.length > 0) {
+					this.props.onChange(last(this.history).props.children);
+				}
 			}
 
 			// remove component action, but don't do it if we're inputting something.
@@ -130,7 +130,7 @@ const createLayouter = PropTypes => {
 
 		onChangeWithHistory = (object) => {
 			this.props.onChange(object.hierarchy);
-			this.history.push(object.hierarchy);
+			this.history.push(...this.getDecoratedHierarchy(object.hierarchy));
 		}
 
 		moveInHierarchy = (pathFrom, pathTo) => {
@@ -200,7 +200,7 @@ const createLayouter = PropTypes => {
 			console.log(`<div>${JSX.join("")}</div>`);
 		}
 
-		getJSONbutton = () => {
+		getJSONandJSXbuttons = () => {
 			return (
 				<div>
 					<button onClick={this.handleJSONprintButton}>get the JSON</button>
@@ -214,7 +214,7 @@ const createLayouter = PropTypes => {
 
 			return (
 				<div style={{ position: "fixed", bottom: 0, background: "grey", right: 0, left: 0, padding: 20, zIndex: 100000000000, maxHeight: 300, overflow: "scroll" }}>
-					{this.getJSONbutton()}
+					{this.getJSONandJSXbuttons()}
 					{Object.keys(components).map((comp, i) => {
 						const ActualComponent = components[comp];
 						const Interim = (props) => {
@@ -244,7 +244,6 @@ const createLayouter = PropTypes => {
 			this.setState({ listedProp });
 		}
 
-
 		setPropListInSwitcher = (propTypeDefinitions, currentHierarchyPath) => {
 			this.setState({ propTypeDefinitions, currentHierarchyPath });
 		}
@@ -268,8 +267,10 @@ const createLayouter = PropTypes => {
 			const { currentHierarchyPath, propTypeDefinitions, propInputs } = this.state;
 			const { hierarchy } = this.props;
 
+			// we dont need to save the root div to the hierarchy. It would only confuse users.
 			const decoratedHierarchy = this.getDecoratedHierarchy(hierarchy);
 
+			// take the current statetree, and render it to react components
 			const components = hierarchyToComponents(decoratedHierarchy, this.props.components, PropTypes);
 
 			const contextObject = {
@@ -300,7 +301,5 @@ const createLayouter = PropTypes => {
 		}
 	};
 };
-
-
 
 export default createLayouter;

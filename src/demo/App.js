@@ -29,7 +29,7 @@ class Main extends Component { // eslint-disable-line
 	constructor() {
 		super();
 		this.state = {
-			hierarchy: [],
+			hierarchy: [{ "id":"ab6287f0-3294-11e8-a95f-6f6fb5be77f8", "type":"Button", "props":{ "hierarchyPath":"ab6287f0-3294-11e8-a95f-6f6fb5be77f8", "children":"Button" } }, { "id":"acbf0ab0-3294-11e8-a95f-6f6fb5be77f8", "type":"Row", "props":{ "hierarchyPath":"acbf0ab0-3294-11e8-a95f-6f6fb5be77f8", "children":[{ "id":"aeb20110-3294-11e8-a95f-6f6fb5be77f8", "type":"Button", "props":{ "hierarchyPath":"aeb20110-3294-11e8-a95f-6f6fb5be77f8", "children":"Button", "myShape":{ "background":"green" } } }] } }],
 		};
 	}
 	render() {

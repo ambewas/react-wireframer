@@ -1,5 +1,5 @@
 /**
- * Implements the drag source contract.
+ * Implements the drag source contracts.
  */
 export const cardSource = {
 	beginDrag(props) {
