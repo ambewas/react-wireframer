@@ -1,11 +1,7 @@
 import React, { Component } from "react";
 
 import {
-	omit,
-	propEq,
 	compose,
-	keys,
-	filter,
 } from "ramda";
 
 import * as R from "ramda";
@@ -19,9 +15,6 @@ import { dropSource, dropCollect, treeSource, dragCollect } from "../helpers/dra
 
 
 const configurable = (WrappedComponent, PropTypes) => {
-	// TODO -- rerenders from top level reset the state of lower components; e.g. when the editor is open, it closes again.
-	// how to protect against this? PureComponents..?
-
 	class ConfigurableComponent extends Component {
 		static propTypes = {
 			children: PropTypes.any,
@@ -31,6 +24,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 			connectDragSource: PropTypes.func,
 			ctx: PropTypes.object,
 		};
+
 		constructor(props) {
 			super(props);
 
@@ -44,14 +38,12 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		getWrappedComponentProps = () => {
-			let props;
-
 			if (WrappedComponent.propTypes) {
 				// filter out all function props; We can't do anything with them anyway.
 				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
 				// build a props object based on these keys and shapeTypes.
-				props = Object.keys(propTypeDefinitions).reduce((acc, key) => {
+				return Object.keys(propTypeDefinitions).reduce((acc, key) => {
 					const keyValue = propTypeDefinitions[key] && propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
 
 					return {
@@ -61,7 +53,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 					};
 				}, {});
 			}
-			return { ...props };
+			return {};
 		}
 
 		passPropSwitcherData = (e) => {
@@ -87,8 +79,16 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
-			// and now for an extremely dirty hack to support arrayOf propTypes.... let's turn it into an array!
-			// I feel so dirty... but this is the fastest way to solve this problem right now. A refactor is necessary to otherwise support it.
+			/**
+			|--------------------------------------------------
+			| NOTICE! ugly hack coming up...
+			|--------------------------------------------------
+			*/
+			/**
+			 * and now for an extremely dirty hack to support arrayOf propTypes.... let's turn it into an array!
+			 * I feel so dirty... but this is the fastest way to solve this problem right now. A refactor is necessary to otherwise support it.
+			 * The unfortunate side effect of this is that this hack means the state tree is no longer the single source of truth...
+			 */
 			const hackyBuildProps = (props, last) => Object.keys(props).reduce((acc, curr) => {
 				const path = last ? `${last}.${curr}` : curr;
 
