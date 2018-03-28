@@ -26,9 +26,22 @@ const UsableSidebarLayout = (props) => (
 );
 
 class Main extends Component { // eslint-disable-line
+	constructor() {
+		super();
+		this.state = {
+			hierarchy: [],
+		};
+	}
 	render() {
 		return (
-			<Layouter components={{ Button, Row, ClassComponent, UsableSidebarLayout }}/>
+			<Layouter
+				hierarchy={this.state.hierarchy}
+				onChange={hierarchy => {
+					console.log("hierarchy on top", hierarchy);
+					this.setState({ hierarchy });
+				}}
+				components={{ Button, Row, ClassComponent, UsableSidebarLayout }}
+			/>
 		);
 	}
 }
