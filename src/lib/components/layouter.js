@@ -60,6 +60,7 @@ const createLayouter = PropTypes => {
 			// instantiate state -- we need that root div to create a drag drop area
 			this.state = {
 				propInputs: {},
+				currentHierarchyPath: undefined,
 			};
 
 			this.history = [this.props.hierarchy];
@@ -118,8 +119,9 @@ const createLayouter = PropTypes => {
 				},
 			};
 
-			console.log("hierarchy in add to", hierarchy);
-			const newArray = hierarchy && hierarchy.length > 0 ? addById(path, compObject, hierarchy) : [compObject];
+			const decoratedHierarchy = path === "root" ? [...hierarchy, compObject] : hierarchy;
+
+			const newArray = addById(path, compObject, decoratedHierarchy);
 
 			this.onChangeWithHistory({
 				hierarchy: newArray,
@@ -127,7 +129,6 @@ const createLayouter = PropTypes => {
 		}
 
 		onChangeWithHistory = (object) => {
-			console.log("object", object);
 			this.props.onChange(object.hierarchy);
 			this.history.push(object.hierarchy);
 		}
@@ -170,10 +171,14 @@ const createLayouter = PropTypes => {
 			const { hierarchy } = this.props;
 			const newArray = removeById(path, hierarchy);
 
-			this.onChangeWithHistory({
-				hierarchy: newArray,
+
+			this.setState({
 				// component has been removed. Set current path to undefined
 				currentHierarchyPath: undefined,
+			}, () => {
+				this.onChangeWithHistory({
+					hierarchy: newArray,
+				});
 			});
 		}
 
@@ -190,9 +195,9 @@ const createLayouter = PropTypes => {
 		handleJSXprintButton = (e) => {
 			e.preventDefault();
 			const JSONData = this.props.hierarchy;
-			const JSX = generateJSX(JSONData)[0];
+			const JSX = generateJSX(JSONData);
 
-			console.log(JSX);
+			console.log(`<div>${JSX.join("")}</div>`);
 		}
 
 		getJSONbutton = () => {
@@ -244,12 +249,8 @@ const createLayouter = PropTypes => {
 			this.setState({ propTypeDefinitions, currentHierarchyPath });
 		}
 
-		render() {
-			const { currentHierarchyPath, propTypeDefinitions, propInputs } = this.state;
-			const { hierarchy } = this.props;
-
-			console.log("hierarchy", hierarchy);
-			const decoratedHierarchy = [{
+		getDecoratedHierarchy = hierarchy => (
+			[{
 				id: "root",
 				type: "div",
 				props: {
@@ -260,7 +261,14 @@ const createLayouter = PropTypes => {
 					},
 					children: hierarchy,
 				},
-			}];
+			}]
+		)
+
+		render() {
+			const { currentHierarchyPath, propTypeDefinitions, propInputs } = this.state;
+			const { hierarchy } = this.props;
+
+			const decoratedHierarchy = this.getDecoratedHierarchy(hierarchy);
 
 			const components = hierarchyToComponents(decoratedHierarchy, this.props.components, PropTypes);
 

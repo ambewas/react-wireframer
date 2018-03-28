@@ -68,7 +68,8 @@ class PropSwitcher extends Component {
 		const { propInputs } = this.state;
 		const { hierarchyPath, hierarchy } = this.props;
 
-		const theComponentProps = getById(hierarchyPath, hierarchy).props;
+		const theComponent = getById(hierarchyPath, hierarchy);
+		const theComponentProps = theComponent && theComponent.props;
 
 		const inputPathArray = inputPath.split(".");
 

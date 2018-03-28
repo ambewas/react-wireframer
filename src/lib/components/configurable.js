@@ -6,7 +6,6 @@ import {
 
 import * as R from "ramda";
 import {
-	getPropTypeShape,
 	getCleanProps,
 } from "../helpers/helpers";
 
@@ -28,32 +27,9 @@ const configurable = (WrappedComponent, PropTypes) => {
 		constructor(props) {
 			super(props);
 
-			const wrappedComponentProps = this.getWrappedComponentProps();
-
 			this.state = {
 				props: {  ...this.props },
-				listedProp: undefined,
-				propInputs: { ...wrappedComponentProps, ...this.props },
 			};
-		}
-
-		getWrappedComponentProps = () => {
-			if (WrappedComponent.propTypes) {
-				// filter out all function props; We can't do anything with them anyway.
-				const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-
-				// build a props object based on these keys and shapeTypes.
-				return Object.keys(propTypeDefinitions).reduce((acc, key) => {
-					const keyValue = propTypeDefinitions[key] && propTypeDefinitions[key].type === "shape" ? getPropTypeShape(propTypeDefinitions[key].shapeTypes) : undefined;
-
-					return {
-						...acc,
-						[key]: keyValue,
-						children: this.props.children,
-					};
-				}, {});
-			}
-			return {};
 		}
 
 		passPropSwitcherData = (e) => {
@@ -77,18 +53,18 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			const cleanProps = getCleanProps(restProps);
 
-			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 
 			/**
-			|--------------------------------------------------
-			| NOTICE! ugly hack coming up...
-			|--------------------------------------------------
-			*/
+			 |--------------------------------------------------
+			 | NOTICE! ugly hack coming up...
+			 |--------------------------------------------------
+			 */
 			/**
 			 * and now for an extremely dirty hack to support arrayOf propTypes.... let's turn it into an array!
 			 * I feel so dirty... but this is the fastest way to solve this problem right now. A refactor is necessary to otherwise support it.
 			 * The unfortunate side effect of this is that this hack means the state tree is no longer the single source of truth...
 			 */
+			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
 			const hackyBuildProps = (props, last) => Object.keys(props).reduce((acc, curr) => {
 				const path = last ? `${last}.${curr}` : curr;
 
