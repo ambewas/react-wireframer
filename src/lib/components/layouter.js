@@ -65,7 +65,6 @@ const createLayouter = PropTypes => {
 			this.history = [this.props.hierarchy];
 		}
 
-
 		componentDidMount() {
 			window.addEventListener("keydown", this.handleKeyDown);
 			window.addEventListener("keyup", this.handleKeyUp);
@@ -287,7 +286,6 @@ const createLayouter = PropTypes => {
 								onCloseClick={() => this.setState({ currentHierarchyPath: undefined })}
 							/>
 						)}
-						{"version 2"}
 						{this.getComponentList()}
 						{ Array.isArray(components) ? components.map(Comp => Comp) : components}
 					</HierarchyContext.Provider>
