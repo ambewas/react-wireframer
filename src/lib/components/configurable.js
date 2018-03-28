@@ -1,12 +1,3 @@
-/**
- * todo
- *
- * move prop input handling to separate component
- * render this input handler inside Layouter, which is a more logical structure.
- *
- * handle oneOfType -> selectbox for the type, then render the type input
- */
-
 import React, { Component } from "react";
 
 import {
@@ -124,30 +115,25 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			const hackyProps = hackyBuildProps(cleanProps);
 
-			console.log("hackyProps", hackyProps);
-
-			return (
-				<div
-					style={{ position: "relative" }}
-				>
-					{
-						connectDropTarget(
-							connectDragSource(
-								<div
-									style={style}
-									onClick={this.passPropSwitcherData} // eslint-disable-line
-								>
-									<WrappedComponent {...hackyProps}>
-										{children || this.props.children}
-									</WrappedComponent>
-								</div>
-							)
-						)
-					}
-				</div>
+			return connectDropTarget(
+				connectDragSource(
+					<div
+						style={style}
+						// unfortunate side-effect of drag-drop. This should ideally be a fragment, but it is not possible.
+						// so to allow classNames for positioning things, let's add it to the outer div
+						// side-effects will occur, unfortunately :(
+						className={hackyProps.className}
+						onClick={this.passPropSwitcherData} // eslint-disable-line
+					>
+						<WrappedComponent {...hackyProps}>
+							{children || this.props.children}
+						</WrappedComponent>
+					</div>
+				)
 			);
 		}
 	}
+
 	return compose(
 		DragSource("card", treeSource, dragCollect),
 		DropTarget("card", dropSource, dropCollect)

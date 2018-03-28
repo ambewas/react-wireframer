@@ -15,3 +15,11 @@ button {
 	color: white;
 	font-size: inherit;
 }
+
+.flex-container {
+	display: flex;
+}
+
+.flex-one {
+	flex: 1;
+}
