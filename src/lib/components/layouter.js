@@ -4,9 +4,9 @@ import HierarchyContext from "./hierarchyContext";
 import uuid from "uuid/v1";
 import { DragDropContextProvider, DragSource } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
-import { updateById, addById, removeById, getById } from "../helpers/helpers";
+import { updateById, addById, removeById, getById, refreshAllIds } from "../helpers/helpers";
 import { cardSource, dragCollect } from "../helpers/dragDropContracts";
-import { last, dropLast } from "ramda";
+import { last, dropLast, set, lensProp, compose, lensPath } from "ramda";
 import PropSwitcher from "./propSwitcher";
 import generateJSX from "../helpers/generateJSX";
 
@@ -93,9 +93,15 @@ const createLayouter = PropTypes => {
 				// cmd is no longer down
 				this.cmdDown = false;
 			}
+			if (e.keyCode === 18) {
+				this.altDown = false;
+			}
 		}
 
 		handleKeyDown = (e) => {
+			if (e.keyCode === 18) {
+				this.altDown = true;
+			}
 			if (e.keyCode === 91 || e.keyCode === 93) {
 				// cmd is held down
 				this.cmdDown = true;
@@ -157,11 +163,13 @@ const createLayouter = PropTypes => {
 
 				return;
 			}
-			// delete the component in the pathFrom
-			const stateWithoutTheComponent = removeById(pathFrom, hierarchy);
+			// delete the component in the pathFrom, except when alt is down
+
+			const theCopiedComponents = this.altDown ?  refreshAllIds([theComponent]) : [theComponent];
+			const stateWithoutTheComponent = this.altDown ? hierarchy : removeById(pathFrom, hierarchy);
 
 			// add the component in the pathTo
-			const newState = pathTo === "root" ? [...stateWithoutTheComponent, theComponent] : addById(pathTo, theComponent, stateWithoutTheComponent);
+			const newState = pathTo === "root" ? [...stateWithoutTheComponent, theCopiedComponents[0]] : addById(pathTo, theCopiedComponents[0], stateWithoutTheComponent);
 
 			this.onChangeWithHistory({
 				hierarchy: newState,

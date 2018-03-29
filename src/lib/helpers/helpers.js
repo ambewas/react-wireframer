@@ -10,8 +10,11 @@ import {
 	reject,
 	identity,
 	split,
+	compose,
+	lensProp,
 } from "ramda";
 // import generateJSX from "./generateJSX";
+import uuid from "uuid/v1";
 
 export const safeClick = fn => e => {
 	e.preventDefault();
@@ -34,6 +37,18 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 		objs
 	)
 );
+
+const setNewId = newId => compose(
+	set(lensProp("id"), newId),
+	set(lensPath(["props", "hierarchyPath"]), newId),
+);
+
+export const refreshAllIds = (objs) => {
+	return map(
+		evolve({ props: { children: xs => Array.isArray(xs) ? refreshAllIds(xs) : xs } }),
+		map(setNewId(uuid()), (objs))
+	);
+};
 
 export const updateById = (id, prop, value, objs) => {
 	const propPath = split(".")(prop);
