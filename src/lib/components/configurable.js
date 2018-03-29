@@ -30,14 +30,9 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			this.componentNode = findDOMNode(this.componentInstance) || this.componentInstance;  // eslint-disable-line
 
-			if (this.componentNode && !this.originalBorderleft) {
-				this.originalBorderleft = this.componentNode.style.borderLeft;
-			}
-
 			if (this.componentNode) {
+				console.log("this.componentNode", this.componentNode);
 				this.componentNode.addEventListener("click", this.passPropSwitcherData);
-				// TODO -- not really working...
-				// this.componentNode.style.borderLeft = isOverCurrent || isActive ? "4px solid green" : this.originalBorderleft;
 				connectDragSource(this.componentNode);
 				connectDropTarget(this.componentNode);
 			}

@@ -14,6 +14,7 @@ const hierarchyToComponents = (children, components, PropTypes) => {
 	if (!Array.isArray(children)) {
 		return children;
 	}
+
 	return children.map((element, i) => {
 		if (typeof element === "string") {
 			return element;
@@ -153,6 +154,7 @@ const createLayouter = PropTypes => {
 
 			if (theDropTarget) {
 				console.warn("you cannot move a component inside children of itself!"); // eslint-disable-line
+
 				return;
 			}
 			// delete the component in the pathFrom
@@ -197,6 +199,7 @@ const createLayouter = PropTypes => {
 			const JSONData = JSON.stringify(this.props.hierarchy);
 
 			console.log(JSONData);
+
 			return JSONData;
 		}
 

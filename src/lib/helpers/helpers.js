@@ -16,6 +16,7 @@ import {
 export const safeClick = fn => e => {
 	e.preventDefault();
 	e.stopPropagation();
+
 	return fn && fn(e);
 };
 
@@ -38,6 +39,7 @@ export const updateById = (id, prop, value, objs) => {
 	const propPath = split(".")(prop);
 
 	propPath.shift();
+
 	return recursiveUpdateById(id, set(lensPath(["props", ...propPath]), value), objs);
 };
 
@@ -60,14 +62,17 @@ export const getById = (id, data) => {
 	const iter = (a) => {
 		if (a.id === id) {
 			result = a;
+
 			return true;
 		}
+
 		return Array.isArray(a.props.children) && a.props.children.some(iter);
 	};
 
 	let result;
 
 	data.some(iter);
+
 	return result;
 };
 

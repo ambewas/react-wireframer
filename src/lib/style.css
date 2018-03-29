@@ -62,7 +62,6 @@ p {
 }
 
 .__layouter-hovering-node + * {
-  height: 100%;
   border-left: 4px solid green !important;
 }
 

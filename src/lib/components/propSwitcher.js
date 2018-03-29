@@ -6,7 +6,6 @@ import { set, view, lensPath, omit, compose, propEq, keys, filter } from "ramda"
 import { getById } from "../helpers/helpers";
 
 class PropSwitcher extends Component {
-
 	constructor(props) {
 		super(props);
 		// set initial values

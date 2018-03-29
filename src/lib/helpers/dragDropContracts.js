@@ -54,11 +54,13 @@ export const dropSource = {
 		if (draggedComponentProps.hierarchyPath) {
 			// it's a move!
 			props.ctx.moveInHierarchy(draggedComponentProps.hierarchyPath, props.hierarchyPath);
+
 			return;
 		}
 
 		// it's an add
 		props.ctx.addToHierarchy(draggedComponentProps, props.hierarchyPath);
+
 		return;
 	},
 };
