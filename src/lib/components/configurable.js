@@ -59,7 +59,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 		render() {
 			const { children, isOverCurrent, ctx, ...restProps } = this.props;
 
-			console.log("isOverCurrent", isOverCurrent);
 			const cleanProps = getCleanProps(restProps);
 			const isActive = this.props.hierarchyPath === ctx.activeComponentHierarchyPath;
 
