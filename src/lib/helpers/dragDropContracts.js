@@ -36,6 +36,7 @@ export const dropCollect = (connect, monitor) => {
 
 export const dropSource = {
 	drop(props, monitor) {
+		console.log("props", props);
 		const hasDroppedOnChild = monitor.didDrop();
 		// prevent deep updates
 
@@ -45,11 +46,12 @@ export const dropSource = {
 
 		const draggedComponentProps = monitor.getItem();
 
+		console.log("draggedComponentProps", draggedComponentProps);
 		if (draggedComponentProps.hierarchyPath === props.hierarchyPath) {
 			// dropped component on itself. Dont do anything.
 			return;
 		}
-
+		console.log("draggedComponentProps.hierarchyPath", draggedComponentProps.hierarchyPath);
 		if (draggedComponentProps.hierarchyPath) {
 			// it's a move!
 			props.ctx.moveInHierarchy(draggedComponentProps.hierarchyPath, props.hierarchyPath);

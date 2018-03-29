@@ -20,8 +20,19 @@ const hierarchyToComponents = (children, components, PropTypes) => {
 		}
 
 		// create configurable component so we can start updating props etc.
-		const component = components[element.type];
-		const Configurable = configurable(component || element.type, PropTypes);
+		const SomeComponent = components[element.type] || element.type;
+
+		// make it a class, so we can access the ref...
+		// Stupid, but there's no other way if we want to avoid wrapping the configurables in extra divs.
+		class ClassComponent extends Component { // eslint-disable-line
+			static displayName = "class dnd wrapper";
+			static propTypes = SomeComponent.propTypes;
+			render() {
+				return <SomeComponent {...this.props}/>;
+			}
+		}
+
+		const Configurable = configurable(ClassComponent, PropTypes);
 
 		return (
 			<HierarchyContext.Consumer
@@ -42,7 +53,7 @@ const hierarchyToComponents = (children, components, PropTypes) => {
 };
 
 const createLayouter = PropTypes => {
-	return class Layouter extends Component {
+	return class Layouter extends Component { // eslint-disable-line
 		static propTypes = {
 			components: PropTypes.object,
 			hierarchy: PropTypes.arrayOf(

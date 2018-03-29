@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { findDOMNode } from "react-dom";
 
 import {
 	compose,
@@ -24,23 +25,41 @@ const configurable = (WrappedComponent, PropTypes) => {
 			ctx: PropTypes.object,
 		};
 
+		componentDidMount() {
+			const { connectDragSource, connectDropTarget } = this.props;
+
+			this.componentNode = findDOMNode(this.componentInstance) || this.componentInstance;  // eslint-disable-line
+
+			if (this.componentNode && !this.originalBorderleft) {
+				this.originalBorderleft = this.componentNode.style.borderLeft;
+			}
+
+			if (this.componentNode) {
+				// TODO -- not really working...
+				this.componentNode.addEventListener("click", this.passPropSwitcherData);
+				// this.componentNode.style.borderLeft = isOverCurrent || isActive ? "4px solid green" : this.originalBorderleft;
+				connectDragSource(this.componentNode);
+				connectDropTarget(this.componentNode);
+			}
+		}
+
+		componentWillUnmount() {
+			this.componentNode.removeEventListener("click", this.passPropSwitcherData);
+		}
+
 		passPropSwitcherData = (e) => {
 			e.stopPropagation();
 			const { ctx } = this.props;
 			const propTypeDefinitions = PropTypes.getPropTypeDefinitions(WrappedComponent.propTypes);
-
 			// pass the definitions and path to Layouter.
+
 			ctx.setPropListInSwitcher(propTypeDefinitions, this.props.hierarchyPath);
 		}
 
 		render() {
-			const { isOverCurrent, connectDropTarget, connectDragSource, ctx, children, hierarchyPath, ...restProps } = this.props;
-
-			const isActive = ctx && (hierarchyPath === ctx.activeComponentHierarchyPath);
-			const style = isOverCurrent || isActive ? { borderLeft: "4px solid green" } : {};
+			const { children, ...restProps } = this.props;
 
 			const cleanProps = getCleanProps(restProps);
-
 
 
 			/**
@@ -85,23 +104,14 @@ const configurable = (WrappedComponent, PropTypes) => {
 			|--------------------------------------------------
 			*/
 
-
-
-			return connectDropTarget(
-				connectDragSource(
-					<div
-						style={style}
-						// unfortunate side-effect of drag-drop. This should ideally be a fragment, but it is not possible.
-						// so to allow classNames for positioning things, let's add it to the outer div
-						// side-effects will occur, unfortunately :(
-						className={hackyProps.className}
-						onClick={this.passPropSwitcherData} // eslint-disable-line
-					>
-						<WrappedComponent {...hackyProps}>
-							{children || this.props.children}
-						</WrappedComponent>
-					</div>
-				)
+			return (
+				<WrappedComponent
+					{...hackyProps}
+					// onClick={this.passPropSwitcherData} // eslint-disable-line
+					ref={instance => this.componentInstance = instance}
+				>
+					{children || this.props.children}
+				</WrappedComponent>
 			);
 		}
 	}
