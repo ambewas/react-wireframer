@@ -49,31 +49,36 @@ class PropSwitcher extends Component {
 		updatePropInHierarchy(inputPath, hierarchyPath, value);
 	}
 
-	renderSelectBox = (propTypeDefinition, inputPath) => {
+	getValueForInputPath = inputPath => {
 		const { propInputs } = this.state;
+		const { hierarchyPath, hierarchy } = this.props;
 
-		const selectValue = propInputs[inputPath];
+		const theComponent = getById(hierarchyPath, hierarchy);
+		const theComponentProps = theComponent && theComponent.props;
+		const inputPathArray = inputPath.split(".");
+
+		const localValue = view(lensPath(inputPathArray), propInputs);
+		const inputValue = localValue == null ? view(lensPath(inputPathArray.slice(1)), theComponentProps) : localValue; // eslint-disable-line
+
+		return inputValue;
+	}
+
+	renderSelectBox = (propTypeDefinition, inputPath) => {
+		const selectValue = this.getValueForInputPath(inputPath);
+
 		const options = propTypeDefinition.expectedValues;
 		const optionsArray = options.map(option => <option key={option} value={option}>{option}</option>);
 
 		return (
-			<select name={inputPath} value={selectValue} onChange={(e) => this.handleSelectInput(e, inputPath)}>
+			<select name={inputPath} value={selectValue || "default"} onChange={(e) => this.handleSelectInput(e, inputPath)}>
+				<option value="default" disabled hidden>select</option>
 				{optionsArray}
 			</select>
 		);
 	}
 
 	renderInputBox = (inputPath, inputType, valueType) => {
-		const { propInputs } = this.state;
-		const { hierarchyPath, hierarchy } = this.props;
-
-		const theComponent = getById(hierarchyPath, hierarchy);
-		const theComponentProps = theComponent && theComponent.props;
-
-		const inputPathArray = inputPath.split(".");
-
-		const localValue = view(lensPath(inputPathArray), propInputs);
-		const inputValue = localValue == null ? view(lensPath(inputPathArray.slice(1)), theComponentProps) : localValue; // eslint-disable-line
+		const inputValue = this.getValueForInputPath(inputPath);
 
 		return (
 			<div>
