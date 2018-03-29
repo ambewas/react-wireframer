@@ -61,6 +61,11 @@ p {
   padding: 20px;
 }
 
+.__layouter-hovering-node + * {
+  height: 100%;
+  border-left: 4px solid green !important;
+}
+
 .__prop-switcher {
   position: fixed;
   z-index: 99999999;

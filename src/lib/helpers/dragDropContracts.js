@@ -1,3 +1,5 @@
+import { findDOMNode } from "react-dom";
+
 /**
  * Implements the drag source contracts.
  */
@@ -36,7 +38,6 @@ export const dropCollect = (connect, monitor) => {
 
 export const dropSource = {
 	drop(props, monitor) {
-		console.log("props", props);
 		const hasDroppedOnChild = monitor.didDrop();
 		// prevent deep updates
 
@@ -46,21 +47,17 @@ export const dropSource = {
 
 		const draggedComponentProps = monitor.getItem();
 
-		console.log("draggedComponentProps", draggedComponentProps);
 		if (draggedComponentProps.hierarchyPath === props.hierarchyPath) {
 			// dropped component on itself. Dont do anything.
 			return;
 		}
-		console.log("draggedComponentProps.hierarchyPath", draggedComponentProps.hierarchyPath);
 		if (draggedComponentProps.hierarchyPath) {
 			// it's a move!
-			console.log("moving");
 			props.ctx.moveInHierarchy(draggedComponentProps.hierarchyPath, props.hierarchyPath);
 			return;
 		}
 
 		// it's an add
-		console.log("adding");
 		props.ctx.addToHierarchy(draggedComponentProps, props.hierarchyPath);
 		return;
 	},

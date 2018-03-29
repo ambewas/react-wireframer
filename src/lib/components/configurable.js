@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { findDOMNode } from "react-dom";
 
 import {
@@ -57,10 +57,10 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		render() {
-			const { children, ...restProps } = this.props;
+			const { children, isOverCurrent, ctx, ...restProps } = this.props;
 
 			const cleanProps = getCleanProps(restProps);
-
+			const isActive = this.props.hierarchyPath === ctx.activeComponentHierarchyPath;
 
 			/**
 			 |--------------------------------------------------
@@ -105,12 +105,15 @@ const configurable = (WrappedComponent, PropTypes) => {
 			*/
 
 			return (
-				<WrappedComponent
-					{...hackyProps}
-					ref={instance => this.componentInstance = instance}
-				>
-					{children || this.props.children}
-				</WrappedComponent>
+				<Fragment>
+					{isOverCurrent || isActive && <div className="__layouter-hovering-node" />}
+					<WrappedComponent
+						{...hackyProps}
+						ref={instance => this.componentInstance = instance}
+					>
+						{children || this.props.children}
+					</WrappedComponent>
+				</Fragment>
 			);
 		}
 	}
