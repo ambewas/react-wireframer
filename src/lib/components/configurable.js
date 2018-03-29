@@ -59,6 +59,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 		render() {
 			const { children, isOverCurrent, ctx, ...restProps } = this.props;
 
+			console.log("isOverCurrent", isOverCurrent);
 			const cleanProps = getCleanProps(restProps);
 			const isActive = this.props.hierarchyPath === ctx.activeComponentHierarchyPath;
 
@@ -106,7 +107,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 
 			return (
 				<Fragment>
-					{isOverCurrent || isActive && <div className="__layouter-hovering-node" />}
+					{(isOverCurrent || isActive) && <div className="__layouter-hovering-node" />}
 					<WrappedComponent
 						{...hackyProps}
 						ref={instance => this.componentInstance = instance}
