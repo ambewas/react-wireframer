@@ -13,7 +13,7 @@ import {
 	compose,
 	lensProp,
 } from "ramda";
-// import generateJSX from "./generateJSX";
+
 import uuid from "uuid/v1";
 
 export const safeClick = fn => e => {

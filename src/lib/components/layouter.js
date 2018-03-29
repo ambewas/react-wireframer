@@ -6,7 +6,7 @@ import { DragDropContextProvider, DragSource } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { updateById, addById, removeById, getById, refreshAllIds } from "../helpers/helpers";
 import { cardSource, dragCollect } from "../helpers/dragDropContracts";
-import { last, dropLast, set, lensProp, compose, lensPath } from "ramda";
+import { last, dropLast } from "ramda";
 import PropSwitcher from "./propSwitcher";
 import generateJSX from "../helpers/generateJSX";
 
@@ -138,6 +138,7 @@ const createLayouter = PropTypes => {
 				},
 			};
 
+			// if we're adding to the root area, we need to add the object as a sibling.
 			const newArray = path === "root" ? [...hierarchy, compObject] : addById(path, compObject, hierarchy);
 
 			this.onChangeWithHistory({
@@ -164,8 +165,8 @@ const createLayouter = PropTypes => {
 
 				return;
 			}
-			// delete the component in the pathFrom, except when alt is down
 
+			// delete the component in the pathFrom, except when alt is down, then we copy it with fresh IDs.
 			const theCopiedComponents = this.altDown ?  refreshAllIds([theComponent]) : [theComponent];
 			const stateWithoutTheComponent = this.altDown ? hierarchy : removeById(pathFrom, hierarchy);
 
@@ -286,6 +287,7 @@ const createLayouter = PropTypes => {
 		}
 
 		getDecoratedHierarchy = hierarchy => (
+			// always ensure there is a root element. This does not belong in the users' state so it's not a part of hierarchy.
 			[{
 				id: "root",
 				type: "div",
