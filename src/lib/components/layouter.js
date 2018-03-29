@@ -209,27 +209,44 @@ const createLayouter = PropTypes => {
 			);
 		}
 
+		toggleComponentOverview = () => {
+			this.setState(prevState => ({
+				componentOverview: !prevState.componentOverview,
+			}));
+		}
+
 		getComponentList = () => {
 			const { components } = this.props;
+			const { componentOverview } = this.state;
 
 			return (
-				<div className="__layouter-component-overview">
-					{this.getJSONandJSXbuttons()}
-					{Object.keys(components).map((comp, i) => {
-						const ActualComponent = components[comp];
-						const Interim = (props) => {
-							return props.connectDragSource(
-								<div className="__layouter-component-overview-preview">
-									<p>component: {comp}</p>
-									<ActualComponent>{comp}</ActualComponent>
-								</div>
-							);
-						};
+				<div className={`__layouter-component-overview-wrapper ${!componentOverview && "__layouter-component-overview-wrapper-hide"}`}>
+					<div
+						onClick={this.toggleComponentOverview} // eslint-disable-line
+						className="__layouter-component-overview-toggle"
+					>
+						{componentOverview ? "hide" : "show"}
+					</div>
+					<div className="__layouter-component-overview">
+						{this.getJSONandJSXbuttons()}
+						{Object.keys(components).map((comp, i) => {
+							const ActualComponent = components[comp];
+							const Interim = (props) => {
+								return (
+									<div className="__layouter-component-overview-preview">
+										<div className="__layouter-margin-small-bottom">component: {comp}</div>
+										{props.connectDragSource(
+											<div className="__layouter-cursor-grab"><ActualComponent>{comp}</ActualComponent></div>
+										)}
+									</div>
+								);
+							};
 
-						const Draggable = DragSource("card", cardSource, dragCollect)(Interim);
+							const Draggable = DragSource("card", cardSource, dragCollect)(Interim);
 
-						return <Draggable key={comp + i} componentType={comp} />; // eslint-disable-line
-					})}
+							return <Draggable key={comp + i} componentType={comp} />; // eslint-disable-line
+						})}
+					</div>
 				</div>
 			);
 		}

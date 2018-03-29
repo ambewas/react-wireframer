@@ -1,21 +1,53 @@
-.__layouter-component-overview {
+p {
+  margin: 0;
+}
+
+.__layouter-component-overview-wrapper {
   position: fixed;
   bottom: 0;
-  background: grey;
+  background: #dedede;
   right: 0;
   left: 0;
   padding: 20px;
   z-index: 100000000000;
+  box-shadow: 1px 7px 15px 4px;
+  border: 1px solid #03A9F4;
+  border-bottom: none;
+  transition: transform 100ms linear;
+}
+
+.__layouter-component-overview-wrapper-hide {
+  transform: translateY(100%);
+}
+
+.__layouter-component-overview {
   max-height: 300px;
   overflow: scroll;
   display: flex;
   flex-wrap: wrap;
 }
 
+.__layouter-component-overview-toggle {
+  position: absolute;
+  top: -39px;
+  padding: 10px 20px;
+  background: inherit;
+  border: 1px solid #03A9F4;
+  border-bottom: none;
+  cursor: pointer;
+}
+
 .__layouter-component-overview .__layouter-component-overview-preview {
-  padding: 20px;
+  /* padding: 20px; */
   margin: 10px;
-  border: 3px solid red;
+  /* border: 3px solid red; */
+}
+
+.__layouter-margin-small-bottom {
+  margin-bottom: 12px;
+}
+
+.__layouter-cursor-grab {
   cursor: grab;
 }
 
