@@ -73,6 +73,7 @@ const createLayouter = PropTypes => {
 			this.state = {
 				propInputs: {},
 				currentHierarchyPath: undefined,
+				componentOverview: true,
 			};
 
 			this.history = this.getDecoratedHierarchy(this.props.hierarchy);
