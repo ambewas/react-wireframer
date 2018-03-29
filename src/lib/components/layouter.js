@@ -130,9 +130,7 @@ const createLayouter = PropTypes => {
 				},
 			};
 
-			const decoratedHierarchy = path === "root" ? [...hierarchy, compObject] : hierarchy;
-
-			const newArray = addById(path, compObject, decoratedHierarchy);
+			const newArray = path === "root" ? [...hierarchy, compObject] : addById(path, compObject, hierarchy);
 
 			this.onChangeWithHistory({
 				hierarchy: newArray,
@@ -157,12 +155,11 @@ const createLayouter = PropTypes => {
 				console.warn("you cannot move a component inside children of itself!"); // eslint-disable-line
 				return;
 			}
-
 			// delete the component in the pathFrom
 			const stateWithoutTheComponent = removeById(pathFrom, hierarchy);
 
 			// add the component in the pathTo
-			const newState = addById(pathTo, theComponent, stateWithoutTheComponent);
+			const newState = pathTo === "root" ? [...stateWithoutTheComponent, theComponent] : addById(pathTo, theComponent, stateWithoutTheComponent);
 
 			this.onChangeWithHistory({
 				hierarchy: newState,

@@ -35,8 +35,8 @@ const configurable = (WrappedComponent, PropTypes) => {
 			}
 
 			if (this.componentNode) {
-				// TODO -- not really working...
 				this.componentNode.addEventListener("click", this.passPropSwitcherData);
+				// TODO -- not really working...
 				// this.componentNode.style.borderLeft = isOverCurrent || isActive ? "4px solid green" : this.originalBorderleft;
 				connectDragSource(this.componentNode);
 				connectDropTarget(this.componentNode);
@@ -107,7 +107,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			return (
 				<WrappedComponent
 					{...hackyProps}
-					// onClick={this.passPropSwitcherData} // eslint-disable-line
 					ref={instance => this.componentInstance = instance}
 				>
 					{children || this.props.children}
