@@ -25,22 +25,6 @@ const configurable = (WrappedComponent, PropTypes) => {
 			ctx: PropTypes.object,
 		};
 
-		componentDidMount() {
-			const { connectDragSource, connectDropTarget } = this.props;
-
-			this.componentNode = findDOMNode(this.componentInstance) || this.componentInstance;  // eslint-disable-line
-
-			if (this.componentNode) {
-				console.log("this.componentNode", this.componentNode);
-				this.componentNode.addEventListener("click", this.passPropSwitcherData);
-				connectDragSource(this.componentNode);
-				connectDropTarget(this.componentNode);
-			}
-		}
-
-		componentWillUnmount() {
-			this.componentNode.removeEventListener("click", this.passPropSwitcherData);
-		}
 
 		passPropSwitcherData = (e) => {
 			e.stopPropagation();
@@ -52,7 +36,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		render() {
-			const { children, isOverCurrent, ctx, ...restProps } = this.props;
+			const { children, isOverCurrent, ctx, connectDragSource, connectDropTarget, ...restProps } = this.props;
 
 			const cleanProps = getCleanProps(restProps);
 			const isActive = this.props.hierarchyPath === ctx.activeComponentHierarchyPath;
@@ -99,17 +83,18 @@ const configurable = (WrappedComponent, PropTypes) => {
 			|--------------------------------------------------
 			*/
 
-			return (
-				<Fragment>
-					{(isOverCurrent || isActive) && <div className="__layouter-hovering-node" />}
+			return connectDragSource(connectDropTarget(
+				<div
+					onClick={this.passPropSwitcherData} // eslint-disable-line
+					className={(isOverCurrent || isActive) ? "__layouter-hovering" : undefined}
+				>
 					<WrappedComponent
 						{...hackyProps}
-						ref={instance => this.componentInstance = instance}
 					>
 						{children || this.props.children}
 					</WrappedComponent>
-				</Fragment>
-			);
+				</div>
+			));
 		}
 	}
 
