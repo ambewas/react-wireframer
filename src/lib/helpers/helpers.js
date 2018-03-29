@@ -46,7 +46,7 @@ const setNewId = newId => compose(
 export const refreshAllIds = (objs) => {
 	return map(
 		evolve({ props: { children: xs => Array.isArray(xs) ? refreshAllIds(xs) : xs } }),
-		map(setNewId(uuid()), (objs))
+		map(setNewId(uuid()), objs)
 	);
 };
 
