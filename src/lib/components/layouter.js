@@ -167,7 +167,8 @@ const createLayouter = PropTypes => {
 			}
 
 			// delete the component in the pathFrom, except when alt is down, then we copy it with fresh IDs.
-			const theCopiedComponents = this.altDown ?  refreshAllIds([theComponent]) : [theComponent];
+			const theCopiedComponents = this.altDown ? refreshAllIds([theComponent]) : [theComponent];
+			console.log("theCopiedComponents", theCopiedComponents);
 			const stateWithoutTheComponent = this.altDown ? hierarchy : removeById(pathFrom, hierarchy);
 
 			// add the component in the pathTo

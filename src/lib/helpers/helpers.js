@@ -38,15 +38,19 @@ const recursiveUpdateById = (id, updateFn, objs) => map(
 	)
 );
 
-const setNewId = newId => compose(
-	set(lensProp("id"), newId),
-	set(lensPath(["props", "hierarchyPath"]), newId),
-);
+const setNewId = (newId) => {
+	return compose(
+		set(lensProp("id"), newId),
+		set(lensPath(["props", "hierarchyPath"]), newId),
+	);
+};
 
+// note -> we cannot curry the setNewId function, because uuid() is then only executed once,
+// which results in only one UUID per sibling.
 export const refreshAllIds = (objs) => {
 	return map(
 		evolve({ props: { children: xs => Array.isArray(xs) ? refreshAllIds(xs) : xs } }),
-		map(setNewId(uuid()), objs)
+		map((x) => setNewId(uuid())(x), objs)
 	);
 };
 
