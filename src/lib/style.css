@@ -68,6 +68,9 @@ p {
   padding: 20px;
 }
 
+.__layouter-border-bottom {
+  border-bottom: 3px solid blue;
+}
 
 .__prop-switcher {
   position: fixed;

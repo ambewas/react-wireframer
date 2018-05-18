@@ -37,9 +37,14 @@ export const dropCollect = (connect, monitor) => {
 
 
 export const dropSource = {
-	hover() {
+	hover(props, monitor, component) {
+		const dragPath = monitor.getItem().hierarchyPath;
+		const theComponent = findDOMNode(component); // eslint-disable-line
+		const hoverPath = props.hierarchyPath;
 
-	}
+		console.log("hoverPath", hoverPath);
+		theComponent.className = "__layouter-border-bottom";
+	},
 	drop(props, monitor) {
 		const hasDroppedOnChild = monitor.didDrop();
 		// prevent deep updates
