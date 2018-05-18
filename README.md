@@ -6,15 +6,21 @@ build wireframes with your react components!
 
 `npm i react-wireframer`
 
-To use this layouter, make sure your components have propTypes defined. All defined proptypes will be exposed when clicking on the component in the app.
+
+To have all props available for editing live (in development), make sure your components have propTypes defined. All defined proptypes will be exposed when clicking on the component in the app.
 
 Try dragging & dropping.
 
 Try cmd + z for undo.
 
 Try alt + drag for copy.
+## how to use it
+Make sure to call `createLayouter` with an instance of prop-types installed from our own fork. It provides some extra magic in development mode, that extract all the possible types of props (yes, even enums for dropdowns!).
 
-example usage:
+
+You can install this prop-types fork by putting the following in your package.json file:
+
+`"prop-types": "git+https://github.com/ambewas/prop-types.git",`
 ```js
 
 import React, { Component } from "react";
