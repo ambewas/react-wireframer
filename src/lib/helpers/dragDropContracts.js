@@ -39,15 +39,13 @@ export const dropSource = {
 		const dragPath = monitor.getItem().hierarchyPath;
 		const theComponent = findDOMNode(component); // eslint-disable-line
 		const hoverPath = props.hierarchyPath;
-		if (monitor.isOver({ shallow: true })) {
-			if (hoverPath !== "root") {
-				// Don't replace items with themselves
-				if (dragPath === hoverPath) {
-					return;
-				}
-				console.log("hoverPath", hoverPath);
-				theComponent.className = "__layouter-border-bottom";
+		if (monitor.isOver({ shallow: true }) && hoverPath !== "root") {
+			// Don't replace items with themselves
+			if (dragPath === hoverPath) {
+				return;
 			}
+			console.log("hoverPath", hoverPath);
+			theComponent.className = "__layouter-border-bottom";
 		}
 	},
 	drop(props, monitor) {
