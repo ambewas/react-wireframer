@@ -6,7 +6,7 @@ import { DragDropContextProvider, DragSource } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
 import { updateById, addById, removeById, getById, refreshAllIds } from "../helpers/helpers";
 import { cardSource, dragCollect } from "../helpers/dragDropContracts";
-import { last, dropLast } from "ramda";
+import { last, dropLast, findIndex, propEq, insert } from "ramda";
 import PropSwitcher from "./propSwitcher";
 import generateJSX from "../helpers/generateJSX";
 
@@ -94,14 +94,14 @@ const createLayouter = PropTypes => {
 				// cmd is no longer down
 				this.cmdDown = false;
 			}
-			if (e.keyCode === 18) {
-				this.altDown = false;
+			if (e.keyCode === 18 && this.state.altDown) {
+				this.setState({ altDown: false });
 			}
 		}
 
 		handleKeyDown = (e) => {
-			if (e.keyCode === 18) {
-				this.altDown = true;
+			if (e.keyCode === 18 && !this.state.altDown) {
+				this.setState({ altDown: true });
 			}
 			if (e.keyCode === 91 || e.keyCode === 93) {
 				// cmd is held down
@@ -151,28 +151,38 @@ const createLayouter = PropTypes => {
 			this.history.push(...this.getDecoratedHierarchy(object.hierarchy));
 		}
 
-		moveInHierarchy = (pathFrom, pathTo) => {
+		moveInHierarchy = (pathFrom, pathTo, beforeWhich) => {
 			const { hierarchy } = this.props;
 			// get the piece of the component tree based on pathFrom
 
 			const theComponent = getById(pathFrom, hierarchy);
 
 			// don't move a component into it's own children
-			const theDropTarget = getById(pathTo, [theComponent]);
+			const theDropTargetAsChild = getById(pathTo, [theComponent]);
 
-			if (theDropTarget) {
+			if (theDropTargetAsChild) {
 				console.warn("you cannot move a component inside children of itself!"); // eslint-disable-line
 
 				return;
 			}
 
+			const dropTarget = getById(pathTo, this.getDecoratedHierarchy(hierarchy));
+
+			// TODO -- plus one or not, this will have to depend on the direction we're dragging, or based on whether the beforeWhich element is a child of the dropTarget??
+			const beforeWhichIsChildOfDropTarget = !!getById(beforeWhich, [dropTarget]);
+			console.log("beforeWhich", beforeWhich);
+			console.log("beforeWhichIsChildOfDropTarget", beforeWhichIsChildOfDropTarget);
+			const insertIndex = findIndex(propEq("id", beforeWhich))(dropTarget.props.children);
+			const correctedIndex = beforeWhichIsChildOfDropTarget ? insertIndex : insertIndex + 1;
+			console.log("insertIndex", insertIndex);
+
+
 			// delete the component in the pathFrom, except when alt is down, then we copy it with fresh IDs.
-			const theCopiedComponents = this.altDown ? refreshAllIds([theComponent]) : [theComponent];
-			console.log("theCopiedComponents", theCopiedComponents);
-			const stateWithoutTheComponent = this.altDown ? hierarchy : removeById(pathFrom, hierarchy);
+			const theCopiedComponents = this.state.altDown ? refreshAllIds([theComponent]) : [theComponent];
+			const stateWithoutTheComponent = this.state.altDown ? hierarchy : removeById(pathFrom, hierarchy);
 
 			// add the component in the pathTo
-			const newState = pathTo === "root" ? [...stateWithoutTheComponent, theCopiedComponents[0]] : addById(pathTo, theCopiedComponents[0], stateWithoutTheComponent);
+			const newState = pathTo === "root" ? insert(insertIndex, theCopiedComponents[0], stateWithoutTheComponent) : addById(pathTo, theCopiedComponents[0], stateWithoutTheComponent, correctedIndex);
 
 			this.onChangeWithHistory({
 				hierarchy: newState,
@@ -300,6 +310,10 @@ const createLayouter = PropTypes => {
 			}]
 		)
 
+		getById = id => {
+			return getById(id, this.props.hierarchy);
+		}
+
 		render() {
 			const { currentHierarchyPath, propTypeDefinitions, propInputs } = this.state;
 			const { hierarchy } = this.props;
@@ -314,7 +328,9 @@ const createLayouter = PropTypes => {
 				addToHierarchy: this.addToHierarchy,
 				moveInHierarchy: this.moveInHierarchy,
 				setPropListInSwitcher: this.setPropListInSwitcher,
-				activeComponentHierarchyPath:  currentHierarchyPath,
+				activeComponentHierarchyPath: currentHierarchyPath,
+				getById: this.getById,
+				altDown: this.state.altDown,
 			};
 
 			return (
