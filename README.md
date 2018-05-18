@@ -12,6 +12,8 @@ Try dragging & dropping.
 
 Try cmd + z for undo.
 
+Try alt + drag for copy.
+
 example usage:
 ```js
 
