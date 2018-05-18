@@ -2,7 +2,7 @@
 
 build wireframes with your react components!
 
-[Demo](react-wireframer.surge.sh)
+[Demo](http://react-wireframer.surge.sh)
 
 `npm i react-wireframer`
 
