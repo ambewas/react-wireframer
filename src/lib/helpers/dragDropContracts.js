@@ -37,6 +37,9 @@ export const dropCollect = (connect, monitor) => {
 
 
 export const dropSource = {
+	hover() {
+
+	}
 	drop(props, monitor) {
 		const hasDroppedOnChild = monitor.didDrop();
 		// prevent deep updates

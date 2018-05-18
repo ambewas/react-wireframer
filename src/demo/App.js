@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import Row from "./components/row";
 import Button from "./components/button";
 import ClassComponent from "./components/class";
-import Label from "./components/label";
 
 import createLayouter from "../lib/components/layouter";
 import "./style.css";
@@ -24,10 +23,9 @@ class Main extends Component { // eslint-disable-line
 			<Layouter
 				hierarchy={this.state.hierarchy}
 				onChange={hierarchy => {
-					console.log("hierarchy on top", hierarchy);
 					this.setState({ hierarchy });
 				}}
-				components={{ Button, Row, ClassComponent, Label }}
+				components={{ Button, Row, ClassComponent }}
 			/>
 		);
 	}

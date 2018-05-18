@@ -2,6 +2,15 @@ p {
   margin: 0;
 }
 
+.__layouter-configurable-wrapper {
+  transition: all 100ms linear;
+}
+
+.__layouter-hovering {
+  /* border-left: 4px solid green !important; */
+  box-shadow: -4px 0px 0px 0px #F44336;
+}
+
 .__layouter-component-overview-wrapper {
   position: fixed;
   bottom: 0;
@@ -59,9 +68,6 @@ p {
   padding: 20px;
 }
 
-.__layouter-hovering {
-  border-left: 4px solid green !important;
-}
 
 .__prop-switcher {
   position: fixed;
