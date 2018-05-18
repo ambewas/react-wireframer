@@ -27,7 +27,6 @@ export const dragCollect = (connect, monitor) => {
 	};
 };
 
-
 export const dropCollect = (connect, monitor) => {
 	return {
 		connectDropTarget: connect.dropTarget(),
@@ -35,15 +34,21 @@ export const dropCollect = (connect, monitor) => {
 	};
 };
 
-
 export const dropSource = {
 	hover(props, monitor, component) {
 		const dragPath = monitor.getItem().hierarchyPath;
 		const theComponent = findDOMNode(component); // eslint-disable-line
 		const hoverPath = props.hierarchyPath;
-
-		console.log("hoverPath", hoverPath);
-		theComponent.className = "__layouter-border-bottom";
+		if (monitor.isOver({ shallow: true })) {
+			if (hoverPath !== "root") {
+				// Don't replace items with themselves
+				if (dragPath === hoverPath) {
+					return;
+				}
+				console.log("hoverPath", hoverPath);
+				theComponent.className = "__layouter-border-bottom";
+			}
+		}
 	},
 	drop(props, monitor) {
 		const hasDroppedOnChild = monitor.didDrop();
