@@ -2,6 +2,8 @@
 
 build wireframes with your react components!
 
+[Demo](react-wireframer.surge.sh)
+
 `npm i react-wireframer`
 
 To use this layouter, make sure your components have propTypes defined. All defined proptypes will be exposed when clicking on the component in the app.
