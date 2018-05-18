@@ -12,6 +12,7 @@ import {
 	split,
 	compose,
 	lensProp,
+	insert,
 } from "ramda";
 
 import uuid from "uuid/v1";
@@ -62,11 +63,11 @@ export const updateById = (id, prop, value, objs) => {
 	return recursiveUpdateById(id, set(lensPath(["props", ...propPath]), value), objs);
 };
 
-export const addById = (id, value, objs) => (
+export const addById = (id, value, objs, index) => (
 	recursiveUpdateById(id, evolve(
 		{
 			props: {
-				children: xs => Array.isArray(xs) ? append(value, xs) : [value],
+				children: xs => Array.isArray(xs) ? insert(index, value, xs) : [value],
 			},
 		}
 	), objs)
@@ -89,7 +90,6 @@ export const getById = (id, data) => {
 	};
 
 	let result;
-
 	data.some(iter);
 
 	return result;
@@ -107,3 +107,58 @@ export const getPropTypeShape = (shape) => {
 
 	return definition;
 };
+
+export const getChildren = (n, skipMe) => {
+	const r = [];
+
+	for (; n; n = n.nextSibling) {
+		if (n.nodeType === 1 && n !== skipMe) {
+			r.push(n);
+		}
+	}
+
+	return r;
+};
+
+// https://stackoverflow.com/questions/4378784/how-to-find-all-siblings-of-currently-selected-object
+export const getSiblings = (n) => {
+	return getChildren(n.parentNode.firstChild, n);
+};
+
+
+export function getNextSiblings(elem, filter) {
+	const sibs = [];
+	while (elem = elem.nextSibling) { // eslint-disable-line
+		if (elem.nodeType === 3) {
+			continue;
+		} // text node
+		if (!filter || filter(elem)) {
+			sibs.push(elem);
+		}
+	}
+
+	return sibs;
+}
+
+export function getPreviousSiblings(elem, filter) {
+	const sibs = [];
+	while (elem = elem.previousSibling) { // eslint-disable-line
+		if (elem.nodeType === 3) {
+			continue;
+		} // text node
+		if (!filter || filter(elem)) {
+			sibs.push(elem);
+		}
+	}
+
+	return sibs;
+}
+
+export function divFilter(elem) {
+	switch (elem.nodeName.toUpperCase()) {
+		case "DIV":
+			return true;
+		default:
+			return false;
+	}
+}
