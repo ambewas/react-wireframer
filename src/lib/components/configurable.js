@@ -35,7 +35,7 @@ const configurable = (WrappedComponent, PropTypes) => {
 		}
 
 		render() {
-			const { children, isOverCurrent, ctx, connectDragSource, connectDropTarget, ...restProps } = this.props;
+			const { children, isOverCurrent, isDragging, ctx, connectDragSource, connectDropTarget, ...restProps } = this.props;
 
 			const cleanProps = getCleanProps(restProps);
 			const isActive = this.props.hierarchyPath === ctx.activeComponentHierarchyPath;
@@ -81,11 +81,13 @@ const configurable = (WrappedComponent, PropTypes) => {
 			| end of hacky props..
 			|--------------------------------------------------
 			*/
+			console.log("isDragging", isDragging);
 
 			return connectDragSource(connectDropTarget(
 				<div
+					style={isDragging && !ctx.altDown ? { visibility: "hidden", pointerEvents: "none" } : { position: "relative" }}
 					onClick={this.passPropSwitcherData} // eslint-disable-line
-					className={(isOverCurrent || isActive) ? "__layouter-hovering" : undefined}
+					className={(isOverCurrent || isActive) ? "__layouter-hovering __layouter-configurable-wrapper" : "__layouter-not-hovering __layouter-configurable-wrapper"}
 				>
 					<WrappedComponent
 						{...hackyProps}
