@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const Button = ({ className, aantal, labels = {}, children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "orange" } }) => (
+const Button = ({ className, aantal, labels = {}, children = "button", borderColor = "white", getBackground, light = false, myShape = { background: "green" } }) => (
 	<div className={className} style={{ padding: "10px 30px", background: myShape.background, width: 200, color: light ? "green" : "blue", border: `3px solid ${borderColor}` }}>
 		{children}
 		{aantal}
